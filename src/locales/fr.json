@@ -1,0 +1,225 @@
+{
+  "ACCUEIL": {
+    "BUTTONPOSTVALUE": "Poster",
+    "CONTENTPLACEHOLDER": "Contenu du post",
+    "CREATEPOST": "Créer un post",
+    "QUESTION": "Question",
+    "RESPONSELABEL": "Réponse",
+    "SELECTEDIMAGE": "Image sélectionnée",
+    "TITLE": "Accueil",
+    "TITLEPLACEHOLDER": "Titre du post"
+  },
+  "ALTIMAGEPROFILE": "Image de profil",
+  "ALTMEDIA": "Media du Post",
+  "COMMENT": {
+    "CONTENT": {
+      "FORMAT": "Le contenu du commentaire n'a pas le bon format"
+    },
+    "SUCCESS": "Le commentaire a été créé avec succès"
+  },
+  "COMMENTEDIT": {
+    "CONTENTLABEL": "Contenu",
+    "CONTENTPLACEHOLDER": "Le texte que vous voulez poster",
+    "SUBMITBUTTON": "Modifier ce commentaire",
+    "TITLE": "Modification d'un commentaire"
+  },
+  "CONFIRM": {
+    "COMMENT": "Est-ce que vous êtes sûr de vouloir supprimer ce commentaire ?",
+    "POST": "Est-ce que vous êtes sûr de vouloir supprimer ce post ?",
+    "TOKEN": "Est-ce que vous êtes sûr de vouloir supprimer ce jeton ?",
+    "USER": "Est-ce que vous êtes sûr de vouloir supprimer cet utilisateur ?"
+  },
+  "CONTENT": {
+    "FORMAT": "Le contenu entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ contenu est vide"
+  },
+  "DASHBOARD": {
+    "LISTCOMMENT": "Commentaires",
+    "LISTDASHBOARD": "Tableau de bord",
+    "LISTPOST": "Posts",
+    "LISTREACTS": "Réactions",
+    "LISTTOKEN": "Jetons",
+    "LISTUSER": "Utilisateurs"
+  },
+  "DASHBOARDCOMMENT": {
+    "TITLE": "Liste des commentaires"
+  },
+  "DASHBOARDHOME": {
+    "DEPENDENCIESAPITITLE": "Dépendances API",
+    "DEPENDENCIESDESC": "à mettre à jour",
+    "DEPENDENCIESFRONTTITLE": "Dépendances Front",
+    "DEPENDENCIESUPTODATE": "Toutes les dépendances sont à jour !",
+    "LOADING": "Chargement en cours",
+    "NBCOM": "Nombre de commentaires",
+    "NBPOSTS": "Nombre de posts",
+    "NBREACTS": "Nombre de réactions",
+    "NBUSERS": "Nombre d'utilisateurs",
+    "TITLE": "Tableau de bord"
+  },
+  "DASHBOARDPOST": {
+    "TITLE": "Liste des posts"
+  },
+  "DASHBOARDTOKEN": {
+    "TITLE": "Liste des jetons"
+  },
+  "DASHBOARDUSER": {
+    "TITLE": "Liste des utilisateurs"
+  },
+  "DATATABLE": {
+    "CREATEDAT": "Créé le",
+    "DELETE": "Supprimer",
+    "FIRSTNAME": "Prénom",
+    "IPADDRESS": "Adresse IP",
+    "MODIFY": "Modifier",
+    "NAME": "Nom",
+    "REVOKE": "Révoquer",
+    "TOKEN": "Jeton",
+    "UPDATEDAT": "Modifié le",
+    "USERNAME": "Pseudonyme"
+  },
+  "EMAIL": {
+    "FORMAT": "L'email entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ email est vide"
+  },
+  "ERROR": {
+    "GENERAL": "Une erreur est survenue, veuillez réessayer"
+  },
+  "FIRSTNAME": {
+    "FORMAT": "Le prénom entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ prénom est vide"
+  },
+  "LOGIN": {
+    "DONTHAVEACCOUNT": "Vous n'avez pas encore de compte ?",
+    "IDENTIFIANT": {
+      "INPUT": "Le champ identifiant est vide"
+    },
+    "PASSWORDLABEL": "Mot de passe",
+    "PASSWORDPLACEHOLDER": "Votre mot de passe",
+    "REQUIRED": "obligatoire",
+    "SUBMITBUTTON": "Se connecter",
+    "SUCCESS": "Connecté avec succès",
+    "SWITCHLOGINREGISTER": "S'inscrire",
+    "TITLE": "Connexion",
+    "USERNAMEEMAILLABEL": "Pseudonyme / Email",
+    "USERNAMEEMAILPLACEHOLDER": "exemple@groupomania.fr"
+  },
+  "LOGOUT": "Déconnexion",
+  "NAME": {
+    "FORMAT": "Le nom entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ nom est vide"
+  },
+  "NO": {
+    "COMMENT": "Pas de commentaires trouvés pour ce post",
+    "DEPENDENCIES": "Vous n'avez pas la permission de voir ça",
+    "POST": {
+      "HOME": "Aucun post trouvé, créez en un maintenant !",
+      "PROFILE": "Cet utilisateur n'a aucun post :("
+    }
+  },
+  "PASSWORD": {
+    "FORMAT": "Le password entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ password est vide"
+  },
+  "POST": {
+    "CREATED": {
+      "WITHMEDIA": "Le post a bien été créé avec succès avec un media",
+      "WITHOUTMEDIA": "Le post a été créé avec succès sans media"
+    },
+    "SUCCESS": {
+      "DELETE": "Le post a été supprimé avec succès"
+    },
+    "TITLE": "Post"
+  },
+  "POSTEDIT": {
+    "CONTENTLABEL": "Contenu",
+    "CONTENTPLACEHOLDER": "Le texte que vous voulez poster",
+    "MEDIAOPACITYMESSAGE": "Modifier le media",
+    "MEDIAUPLOAD": "Upload un media",
+    "SUBMITBUTTON": "Modifier ce post",
+    "TITLE": "Modification du post",
+    "TITLELABEL": "Titre",
+    "TITLEPLACEHOLDER": "exemple: Titre"
+  },
+  "PROFIL": {
+    "LATESTPOSTS": "Derniers posts",
+    "TITLE": "Profil"
+  },
+  "QUESTION": {
+    "FORMAT": "La question entrée dans le champ n'a pas le bon format",
+    "INPUT": "Le champ question est vide"
+  },
+  "REPONSE": {
+    "FORMAT": "La réponse entrée dans le champ n'a pas le bon format",
+    "INPUT": "Le champ réponse est vide"
+  },
+  "SETTINGS": {
+    "DELETEACCOUNT": "Supprimer le compte",
+    "HISTORYTITLE": "Historique des connexions",
+    "LANGDESC": "La langue choisie pour le site",
+    "LANGOPTIONPLACEHOLDER": "Veuillez sélectionner une langue",
+    "LANGTITLE": "Langue",
+    "SECURITYDESC": "Le niveau de sécurité choisi pour l'utilisateur",
+    "SECURITYTITLE": "Confidentialité maximale",
+    "THEMEDESC": "Le thème choisi pour le site",
+    "THEMETITLE": "Thème",
+    "TITLE": "Paramètres"
+  },
+  "SIGNUP": {
+    "ALREADYREGISTER": "Vous avez déjà un compte ?",
+    "AVATARLABEL": "Avatar",
+    "AVATARSUBMIT": "Uploader une image",
+    "EMAILLABEL": "Email",
+    "EMAILPLACEHOLDER": "exemple@domain.fr",
+    "FIRSTNAMELABEL": "Prénom",
+    "FIRSTNAMEPLACEHOLDER": "exemple: Doe",
+    "NAMELABEL": "Nom",
+    "NAMEPLACEHOLDER": "exemple: John",
+    "PASSWORDLABEL": "Mot de passe",
+    "PASSWORDPLACEHOLDER": "Votre mot de passe",
+    "QUESTIONLABEL": "Question",
+    "QUESTIONPLACEHOLDER": "Entre 4 et 15 caractères",
+    "REQUIRED": "obligatoire",
+    "RESPONSELABEL": "Réponse",
+    "RESPONSEPLACEHOLDER": "Entre 4 et 15 caractères",
+    "SELECTEDIMAGE": "Image sélectionnée",
+    "SUBMITBUTTON": "S'inscrire",
+    "SWITCHREGISTERLOGIN": "Se connecter",
+    "TITLE": "S'inscrire",
+    "USER": {
+      "SUCCESS": {
+        "WITHAVATAR": "L'utilisateur a été créé avec succès avec un avatar",
+        "WITHOUTAVATAR": "L'utilisateur a bien été créé avec succès sans avatar"
+      }
+    },
+    "USERNAMELABEL": "Pseudonyme",
+    "USERNAMEPLACEHOLDER": "Entre 4 et 20 caractères"
+  },
+  "TITLE": {
+    "FORMAT": "Le titre entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ titre est vide"
+  },
+  "USER": {
+    "SUCCESS": "L'utilisateur a été modifié avec succès"
+  },
+  "USEREDIT": {
+    "EMAILLABEL": "Email",
+    "EMAILPLACEHOLDER": "exemple@domain.fr",
+    "FIRSTNAMELABEL": "Prénom",
+    "FIRSTNAMEPLACEHOLDER": "exemple: Doe",
+    "IMGOPACITYMESSAGE": "Modifier",
+    "NAMELABEL": "Nom",
+    "NAMEPLACEHOLDER": "exemple: John",
+    "QUESTIONLABEL": "Question",
+    "QUESTIONPLACEHOLDER": "Entre 4 et 15 caractères",
+    "RESPONSELABEL": "Réponse",
+    "RESPONSEPLACEHOLDER": "Entre 4 et 15 caractères",
+    "SUBMITBUTTON": "Modifier cet utilisateur",
+    "TITLE": "Modification d'utilisateur",
+    "USERNAMELABEL": "Pseudonyme",
+    "USERNAMEPLACEHOLDER": "Entre 4 et 20 caractères"
+  },
+  "USERNAME": {
+    "FORMAT": "Le pseudonyme entré dans le champ n'a pas le bon format",
+    "INPUT": "Le champ pseudonyme est vide"
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "ACCUEIL": {
+    "BUTTONPOSTVALUE": "Create",
+    "CONTENTPLACEHOLDER": "Post Content",
+    "CREATEPOST": "Create a post",
+    "QUESTION": "Question",
+    "RESPONSELABEL": "Response",
+    "SELECTEDIMAGE": "Image Selected",
+    "TITLE": "Home",
+    "TITLEPLACEHOLDER": "Post Title"
+  },
+  "ALTIMAGEPROFILE": "Profile's image",
+  "ALTMEDIA": "Post's Media",
+  "COMMENT": {
+    "CONTENT": {
+      "FORMAT": "The content of the comment doesn't have a correct format"
+    },
+    "SUCCESS": "Comment has been successfully created"
+  },
+  "COMMENTEDIT": {
+    "CONTENTLABEL": "Content",
+    "CONTENTPLACEHOLDER": "The text that you want to post",
+    "SUBMITBUTTON": "Modify this comment",
+    "TITLE": "Comment Modification"
+  },
+  "CONFIRM": {
+    "COMMENT": "Are you sure you want to delete this comment ?",
+    "POST": "Are you sure you want to delete this post ?",
+    "TOKEN": "Are you sure you want to delete this token ?",
+    "USER": "Are you sure you want to delete this user ?"
+  },
+  "CONTENT": {
+    "FORMAT": "The content entered in the input doesn't have a correct format",
+    "INPUT": "The content input is empty"
+  },
+  "DASHBOARD": {
+    "LISTCOMMENT": "Comments",
+    "LISTDASHBOARD": "Dashboard",
+    "LISTPOST": "Posts",
+    "LISTREACTS": "Reactions",
+    "LISTTOKEN": "Tokens",
+    "LISTUSER": "Users"
+  },
+  "DASHBOARDCOMMENT": {
+    "TITLE": "Comment Dashboard"
+  },
+  "DASHBOARDHOME": {
+    "DEPENDENCIESAPITITLE": "API Dependencies",
+    "DEPENDENCIESDESC": "to update",
+    "DEPENDENCIESFRONTTITLE": "Front Dependencies",
+    "DEPENDENCIESUPTODATE": "All dependencies are up to date !",
+    "LOADING": "Loading",
+    "NBCOM": "Comments Count",
+    "NBPOSTS": "Posts Count",
+    "NBREACTS": "Reacts Count",
+    "NBUSERS": "Users Count",
+    "TITLE": "Dashboard"
+  },
+  "DASHBOARDPOST": {
+    "TITLE": "Post Dashboard"
+  },
+  "DASHBOARDTOKEN": {
+    "TITLE": "Token Dashboard"
+  },
+  "DASHBOARDUSER": {
+    "TITLE": "User Dashboard"
+  },
+  "DATATABLE": {
+    "CREATEDAT": "Created At",
+    "DELETE": "Delete",
+    "FIRSTNAME": "Firstname",
+    "IPADDRESS": "Ip Address",
+    "MODIFY": "Modify",
+    "NAME": "Name",
+    "REVOKE": "Revoke",
+    "TOKEN": "Token",
+    "UPDATEDAT": "Updated At",
+    "USERNAME": "Username"
+  },
+  "EMAIL": {
+    "FORMAT": "The email entered in the input doesn't have a correct format",
+    "INPUT": "The email input is empty"
+  },
+  "ERROR": {
+    "GENERAL": "An error occured, please try again"
+  },
+  "FIRSTNAME": {
+    "FORMAT": "The firstname entered in the input doesn't have a correct format",
+    "INPUT": "The firstname input is empty"
+  },
+  "LOGIN": {
+    "DONTHAVEACCOUNT": "You don't have an account already ?",
+    "IDENTIFIANT": {
+      "INPUT": "The identifiant input is empty"
+    },
+    "PASSWORDLABEL": "Password",
+    "PASSWORDPLACEHOLDER": "Your password",
+    "REQUIRED": "required",
+    "SUBMITBUTTON": "Connect",
+    "SUCCESS": "Successfully Login",
+    "SWITCHLOGINREGISTER": "Sign up",
+    "TITLE": "Login",
+    "USERNAMEEMAILLABEL": "Email / Username",
+    "USERNAMEEMAILPLACEHOLDER": "example@groupomania.fr"
+  },
+  "LOGOUT": "Logout",
+  "NAME": {
+    "FORMAT": "The name entered in the input doesn't have a correct format",
+    "INPUT": "The name input is empty"
+  },
+  "NO": {
+    "COMMENT": "No comments found for this post",
+    "DEPENDENCIES": "You don't have enough permissions to see that",
+    "POST": {
+      "HOME": "No Posts found, create one now !",
+      "PROFILE": "This user doesn't have any posts :("
+    }
+  },
+  "PASSWORD": {
+    "FORMAT": "The password entered in the input doesn't have a correct format",
+    "INPUT": "The password input is empty"
+  },
+  "POST": {
+    "CREATED": {
+      "WITHMEDIA": "The post has been successfully created with a media",
+      "WITHOUTMEDIA": "The post has been successfully created without a media"
+    },
+    "SUCCESS": {
+      "DELETE": "The post has been successfully deleted"
+    },
+    "TITLE": "Post"
+  },
+  "POSTEDIT": {
+    "CONTENTLABEL": "Content",
+    "CONTENTPLACEHOLDER": "The text that you want to post",
+    "MEDIAOPACITYMESSAGE": "Modify the media",
+    "MEDIAUPLOAD": "Upload a media",
+    "SUBMITBUTTON": "Modify this post",
+    "TITLE": "Post Modification",
+    "TITLELABEL": "Title",
+    "TITLEPLACEHOLDER": "example: Title"
+  },
+  "PROFIL": {
+    "LATESTPOSTS": "Latest Posts",
+    "TITLE": "Profile"
+  },
+  "QUESTION": {
+    "FORMAT": "The question entered in the input doesn't have a correct format",
+    "INPUT": "The question input is empty"
+  },
+  "REPONSE": {
+    "FORMAT": "The response entered in the input doesn't have a correct format",
+    "INPUT": "The response input is empty"
+  },
+  "SETTINGS": {
+    "DELETEACCOUNT": "Delete this account",
+    "HISTORYTITLE": "Connexion history",
+    "LANGDESC": "The language chosen for the website",
+    "LANGOPTIONPLACEHOLDER": "Please choose an option",
+    "LANGTITLE": "Language",
+    "SECURITYDESC": "The level of security chosen for the account",
+    "SECURITYTITLE": "Maximal Security",
+    "THEMEDESC": "The theme chosen for the website",
+    "THEMETITLE": "Theme",
+    "TITLE": "Settings"
+  },
+  "SIGNUP": {
+    "ALREADYREGISTER": "You already have a account ?",
+    "AVATARLABEL": "Avatar",
+    "AVATARSUBMIT": "Upload a image",
+    "EMAILLABEL": "Email",
+    "EMAILPLACEHOLDER": "example@domain.fr",
+    "FIRSTNAMELABEL": "Firstname",
+    "FIRSTNAMEPLACEHOLDER": "example: Doe",
+    "NAMELABEL": "Name",
+    "NAMEPLACEHOLDER": "example: John",
+    "PASSWORDLABEL": "Password",
+    "PASSWORDPLACEHOLDER": "Your password",
+    "QUESTIONLABEL": "Question",
+    "QUESTIONPLACEHOLDER": "Between 4 and 15 characters",
+    "REQUIRED": "required",
+    "RESPONSELABEL": "Response",
+    "RESPONSEPLACEHOLDER": "Between 4 and 15 characters",
+    "SELECTEDIMAGE": "Image Selected",
+    "SUBMITBUTTON": "Sign up",
+    "SWITCHREGISTERLOGIN": "Login",
+    "TITLE": "Sign up",
+    "USER": {
+      "SUCCESS": {
+        "WITHAVATAR": "The user has been successfully created with an avatar",
+        "WITHOUTAVATAR": "The user has been successfully created without avatar"
+      }
+    },
+    "USERNAMELABEL": "Username",
+    "USERNAMEPLACEHOLDER": "Between 4 and 20 characters"
+  },
+  "TITLE": {
+    "FORMAT": "The title entered in the input doesn't have a correct format",
+    "INPUT": "The title input is empty"
+  },
+  "USER": {
+    "SUCCESS": "The user has been modified successfully"
+  },
+  "USEREDIT": {
+    "EMAILLABEL": "Email",
+    "EMAILPLACEHOLDER": "example@domain.fr",
+    "FIRSTNAMELABEL": "Firstname",
+    "FIRSTNAMEPLACEHOLDER": "example: Doe",
+    "IMGOPACITYMESSAGE": "Modify",
+    "NAMELABEL": "Name",
+    "NAMEPLACEHOLDER": "example: John",
+    "QUESTIONLABEL": "Question",
+    "QUESTIONPLACEHOLDER": "Between 4 et 15 characters",
+    "RESPONSELABEL": "Response",
+    "RESPONSEPLACEHOLDER": "Between 4 and 15 characters",
+    "SUBMITBUTTON": "Modify this user",
+    "TITLE": "User Modification",
+    "USERNAMELABEL": "Username",
+    "USERNAMEPLACEHOLDER": "Between 4 and 20 characters"
+  },
+  "USERNAME": {
+    "FORMAT": "The username entered in the input doesn't have a correct format",
+    "INPUT": "The username input is empty"
+  }
+}
