@@ -4,27 +4,37 @@
   "private": true,
   "type": "module",
   "scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "lint": "eslint . --ext .js,.ts,.vue",          
-  "lint:fix": "eslint . --ext .js,.ts,.vue --fix", 
-  "stylelint": "stylelint \"src/**/*.{vue,scss}\"",
-  "stylelint:fix": "stylelint \"src/**/*.{vue,scss}\" --fix"  
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "stylelint": "stylelint \"src/**/*.{vue,scss}\"",
+    "stylelint:fix": "stylelint \"src/**/*.{vue,scss}\" --fix"
   },
   "dependencies": {
+    "@vueform/multiselect": "^2.6.11",
+    "@vueuse/head": "^2.0.0",
     "bootstrap": "^5.3.7",
     "core-js": "^3.44.0",
+    "mitt": "^3.0.1",
+    "pinia": "^3.0.3",
+    "pinia-plugin-persistedstate": "^4.4.1",
     "vue": "^3.5.18",
+    "vue-i18n": "^12.0.0-alpha.3",
     "vue-router": "^4.5.1",
-    "vuex": "^4.1.0"
+    "vue3-easy-data-table": "^1.5.47",
+    "vue3-toastify": "^0.2.8"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
     "@types/node": "^24.1.0",
-    "@typescript-eslint/eslint-plugin": "^8.34.1",
-    "@typescript-eslint/parser": "^8.34.1",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
     "@vitejs/plugin-vue": "^4.6.2",
     "@vue/compiler-sfc": "^3.5.18",
     "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-vue": "^9.33.0",
     "prettier": "^3.6.2",
     "sass": "^1.89.2",
@@ -37,6 +47,8 @@
     "stylelint-prettier": "^5.0.3",
     "stylelint-scss": "^6.12.1",
     "typescript": "^5.8.3",
-    "vite": "^4.5.14"
+    "vite": "^4.5.14",
+    "vue-eslint-parser": "^10.2.0",
+    "vue-tsc": "^3.0.4"
   }
 }
