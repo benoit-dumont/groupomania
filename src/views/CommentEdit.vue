@@ -3,26 +3,19 @@
     <div class="content">
       <div class="sidebar">
         <div class="icons">
-          <img :src="this.getImage()" alt="Logo" />
+          <img :src="getImage()" alt="Logo" />
           <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"
-              ><i class="fas fa-home"></i
-            ></router-link>
+            <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
             <router-link
               :to="{
                 name: 'Profil',
-                params: { UserId: $store.state.connectedUser.id },
+                params: { UserId: userStore.connectedUser!.id },
               }"
               ><i class="fas fa-user"></i
             ></router-link>
-            <router-link :to="{ name: 'Settings' }"
-              ><i class="fas fa-cog"></i
-            ></router-link>
+            <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
               ><i class="fas fa-tools"></i
             ></router-link>
@@ -31,37 +24,34 @@
         <div class="box-posts">
           <div class="up">
             <div class="account">
-              <img
-                :src="$store.state.connectedUser.avatar"
-                :alt="$t('ALTIMAGEPROFILE')"
-              />
+              <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
               <i
-                @click="toggleLogout()"
-                v-if="this.menuDisplayed === false"
+                v-if="menuDisplayed === false"
                 class="fas fa-sort-down"
+                @click="() => (menuDisplayed = !menuDisplayed)"
               ></i>
-              <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+              <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
             </div>
             <transition name="logout">
-              <div class="logout" v-if="this.menuDisplayed === true">
-                <p @click="$store.dispatch('logout')">
-                  <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
+              <div v-if="menuDisplayed === true" class="logout">
+                <p @click="userStore.logout()">
+                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
                 </p>
               </div>
             </transition>
           </div>
           <div class="update">
-            <h1>{{ $t('COMMENTEDIT.TITLE') }}</h1>
+            <h1>{{ t('COMMENTEDIT.TITLE') }}</h1>
             <div class="update-container">
               <div class="update-form">
-                <form @submit.prevent="submit" class="form-com-edit">
+                <form class="form-com-edit" @submit.prevent="submit">
                   <div class="champ">
-                    <label>{{ $t('COMMENTEDIT.CONTENTLABEL') }} *</label>
+                    <label>{{ t('COMMENTEDIT.CONTENTLABEL') }} *</label>
                     <br />
                     <textarea
-                      name="content"
-                      :placeholder="$t('COMMENTEDIT.CONTENTPLACEHOLDER')"
                       v-model="comment.content"
+                      name="content"
+                      :placeholder="t('COMMENTEDIT.CONTENTPLACEHOLDER')"
                       :pattern="patternContent"
                     ></textarea>
                   </div>
@@ -69,7 +59,7 @@
                   <input
                     type="submit"
                     name="submit"
-                    :value="$t('COMMENTEDIT.SUBMITBUTTON')"
+                    :value="t('COMMENTEDIT.SUBMITBUTTON')"
                     class="btn"
                   />
                 </form>
@@ -82,111 +72,103 @@
   </div>
 </template>
 
-<script>
-import LogoBlack from '../assets/logo_black.png';
-import LogoWhite from '../assets/logo_white.png';
+<script setup lang="ts">
+import { onMounted, Ref, ref } from 'vue';
+import { useHead } from '@vueuse/head';
+import { useI18n } from 'vue-i18n';
+import { toast } from 'vue3-toastify';
+import { useRoute } from 'vue-router';
 
-export default {
-  name: 'Accueil',
-  metaInfo() {
-    const title = this.$t('COMMENTEDIT.TITLE');
-    return {
-      title,
-    };
+import { useUserStore } from '@/stores/';
+import { getImage } from '@/utils';
+import { CommentId } from '@/types';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const route = useRoute();
+
+useHead({
+  title: t('COMMENTEDIT.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page de modification de commentaire du site Groupomania',
+    },
+  ],
+});
+
+const patternContent = ref(
+  '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ\'"?!., _-]{4,255}',
+);
+const comment = ref<CommentId>({
+  id: 0,
+  content: '',
+  createdAt: '',
+  updatedAt: '',
+  UserId: 0,
+  PostId: 0,
+});
+const menuDisplayed: Ref<boolean> = ref(false);
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  data() {
-    return {
-      patternContent:
-        '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ\'"?!., _-]{4,255}',
-      comment: {},
-      menuDisplayed: false,
-    };
-  },
-  methods: {
-    fetchCommentData() {
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.CommentId === 'number' ||
-        this.$route.params.CommentId < 0
-      )
-        return;
-      fetch(
-        `http://localhost:3000/api/comment/${this.$route.params.CommentId}`,
-        {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer: ${token}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          this.comment = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
+})
+  .then((response) => response.json())
+  .then((data) => {
+    userStore.saveConnectedUser(data.user);
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+onMounted(() => {
+  fetchCommentData();
+});
+
+function fetchCommentData() {
+  const token = userStore.token;
+  if (+route.params.CommentId < 0) return;
+  fetch(`http://localhost:3000/api/comment/${+route.params.CommentId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer: ${token}`,
+      'Content-Type': 'application/json',
     },
-    submit() {
-      const regexContent =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
-      const { content } = this.comment;
-      if (!regexContent.test(content)) {
-        return false;
-      }
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.CommentId === 'number' ||
-        this.$route.params.CommentId < 0
-      )
-        return false;
-      return fetch(
-        `http://localhost:3000/api/comment/${this.$route.params.CommentId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content,
-          }),
-        },
-      ).then(() => this.fetchCommentData());
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer: ${token}`,
-        'Content-Type': 'application/json',
-      },
+  })
+    .then((response) => response.json())
+    .then((data: CommentId) => {
+      comment.value = data;
     })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-  },
-  mounted() {
-    this.fetchCommentData();
-  },
-};
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function submit() {
+  const regexContent =
+    /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
+  const { content } = comment.value;
+  if (!regexContent.test(content)) {
+    return false;
+  }
+  const token = userStore.token;
+  if (+route.params.CommentId < 0) return false;
+  return fetch(`http://localhost:3000/api/comment/${+route.params.CommentId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      content,
+    }),
+  }).then(() => fetchCommentData());
+}
 </script>
 
 <style scoped lang="scss">

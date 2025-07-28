@@ -5,235 +5,217 @@
         <div class="side-container">
           <router-link :to="{ name: 'Accueil' }">
             <p>
-              <img :src="this.getImage()" alt="Logo Groupomania" />
+              <img :src="getImage()" alt="Logo Groupomania" />
             </p>
           </router-link>
           <div class="icons">
             <router-link :to="{ name: 'Home Dashboard' }">
               <p>
                 <i class="fas fa-home"></i>
-                <span>{{ $t('DASHBOARD.LISTDASHBOARD') }}</span>
+                <span>{{ t('DASHBOARD.LISTDASHBOARD') }}</span>
               </p>
             </router-link>
             <router-link
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'User Dashboard' }"
-              v-if="$store.state.connectedUser.rank === 1"
             >
               <p>
                 <i class="fas fa-user"></i>
-                <span>{{ $t('DASHBOARD.LISTUSER') }}</span>
+                <span>{{ t('DASHBOARD.LISTUSER') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Post Dashboard' }">
               <p>
                 <i class="fas fa-comment-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTPOST') }}</span>
+                <span>{{ t('DASHBOARD.LISTPOST') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Comment Dashboard' }">
               <p>
                 <i class="fas fa-comment"></i>
-                <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
+                <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
               </p>
             </router-link>
             <router-link
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'Token Dashboard' }"
-              v-if="$store.state.connectedUser.rank === 1"
             >
               <p>
                 <i class="fas fa-ticket-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTTOKEN') }}</span>
+                <span>{{ t('DASHBOARD.LISTTOKEN') }}</span>
               </p>
             </router-link>
           </div>
-          <div class="logout" v-if="this.menuDisplayed === true">
-            <p @click="$store.dispatch('logout')">
-              <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-            </p>
+          <div v-if="menuDisplayed === true" class="logout">
+            <p @click="userStore.logout()"><i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}</p>
           </div>
           <div class="account">
-            <img
-              :src="$store.state.connectedUser.avatar"
-              :alt="$t('ALTIMAGEPROFILE')"
-            />
+            <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
             <i
-              @click="toggleLogout()"
-              v-if="this.menuDisplayed === false"
+              v-if="menuDisplayed === false"
               class="fas fa-sort-down"
+              @click="() => (menuDisplayed = !menuDisplayed)"
             ></i>
-            <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+            <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
           </div>
         </div>
       </div>
       <div class="middle">
         <div class="middle-container">
-          <h2>{{ $t('DASHBOARDUSER.TITLE') }}</h2>
-          <data-table :columns="columns" :data="userReturned" />
+          <h2>{{ t('DASHBOARDUSER.TITLE') }}</h2>
+          <EasyDataTable :headers="columns" :items="userReturned">
+            <template #modify="{ row }">
+              <modifyActionAdmin :data="row.id" />
+            </template>
+            <template #delete="{ row }">
+              <deleteActionAdmin :data="row.id" />
+            </template>
+          </EasyDataTable>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
+import { Ref, ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { toast } from 'vue3-toastify';
+
 import modifyActionAdmin from '../components/ModifyAction.vue';
 import deleteActionAdmin from '../components/DeleteAction.vue';
-import LogoWhite from '../assets/logo_full_white.png';
-import LogoBlack from '../assets/logo_full_black.png';
 
-export default {
-  metaInfo() {
-    const title = this.$t('DASHBOARDUSER.TITLE');
-    return {
-      title,
-    };
-  },
-  data() {
-    return {
-      users: [],
-      columns: [
-        {
-          key: 'id',
-          title: 'Id',
-          type: 'number',
-        },
-        {
-          key: 'name',
-          title: this.$t('DATATABLE.NAME'),
-          type: 'string',
-        },
-        {
-          key: 'firstname',
-          title: this.$t('DATATABLE.FIRSTNAME'),
-          type: 'string',
-        },
-        {
-          key: 'username',
-          title: this.$t('DATATABLE.USERNAME'),
-          type: 'string',
-        },
-        {
-          key: 'email',
-          title: 'Email',
-          type: 'string',
-        },
-        {
-          key: 'createdAt',
-          title: this.$t('DATATABLE.CREATEDAT'),
-          type: 'string',
-        },
-        {
-          key: 'updatedAt',
-          title: this.$t('DATATABLE.UPDATEDAT'),
-          type: 'string',
-        },
-        {
-          title: this.$t('DATATABLE.MODIFY'),
-          component: modifyActionAdmin,
-          sortable: false,
-          searchable: false,
-        },
-        {
-          title: this.$t('DATATABLE.DELETE'),
-          component: deleteActionAdmin,
-          sortable: false,
-          searchable: false,
-        },
-      ],
+import { useUserStore } from '@/stores/';
+import { User } from '@/types';
+import { formatDate, getImage } from '@/utils';
+import type { Header } from 'vue3-easy-data-table';
 
-      menuDisplayed: false,
-    };
+const { t } = useI18n();
+const userStore = useUserStore();
+const router = useRouter();
+
+useHead({
+  title: t('DASHBOARDUSER.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page d’accueil du site Groupomania',
+    },
+  ],
+});
+
+const users: Ref<User[]> = ref([]);
+const menuDisplayed: Ref<boolean> = ref(false);
+
+const columns: Header[] = [
+  {
+    text: 'Id',
+    value: 'id',
+    sortable: true,
   },
-  computed: {
-    userReturned() {
-      return this.users.map((user) => {
-        const parsedCreatedAt = this.formatDate(user.createdAt);
-        const parsedUpdatedAt = this.formatDate(user.updatedAt);
-        const userModified = {
-          ...user,
-          updatedAt: parsedUpdatedAt,
-          createdAt: parsedCreatedAt,
-        };
-        return userModified;
-      });
-    },
+  {
+    text: t('DATATABLE.NAME'),
+    value: 'name',
+    sortable: true,
   },
-  methods: {
-    listenEventBus() {
-      EventBus.$on('deleteActionPressed', this.deleteUser);
-      EventBus.$on('modifyActionPressed', this.modifyUser);
-    },
-    getUsers() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/user/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer:' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.users = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    modifyUser(userData) {
-      this.$router.push({
-        name: 'User Modification',
-        params: { UserId: userData.id },
-      });
-    },
-    deleteUser(userData) {
-      // eslint-disable-next-line no-alert
-      const validation = window.confirm(this.$t('CONFIRM.USER'));
-      if (validation === true) {
-        const { token } = this.$store.state.token;
-        fetch(`http://localhost:3000/api/user/${userData.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer:' ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }).then(() => this.getUsers());
-      }
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
+  {
+    text: t('DATATABLE.FIRSTNAME'),
+    value: 'firstname',
+    sortable: true,
   },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
+  {
+    text: t('DATATABLE.USERNAME'),
+    value: 'username',
+    sortable: true,
+  },
+  {
+    text: 'Email',
+    value: 'email',
+    sortable: true,
+  },
+  {
+    text: t('DATATABLE.CREATEDAT'),
+    value: 'createdAt',
+    sortable: true,
+  },
+  {
+    text: t('DATATABLE.UPDATEDAT'),
+    value: 'updatedAt',
+    sortable: true,
+  },
+  {
+    text: t('DATATABLE.MODIFY'),
+    value: 'modify',
+    sortable: false,
+  },
+  {
+    text: t('DATATABLE.DELETE'),
+    value: 'delete',
+    sortable: false,
+  },
+];
+
+onMounted(() => {
+  EventBus.on('modifyActionPressed', (_payload) => modifyUser);
+  EventBus.on('deleteActionPressed', (_payload) => deleteUser);
+  getUsers();
+});
+
+function getUsers() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/user/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer:' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: User[]) => {
+      users.value = data;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function modifyUser(id: User['id']) {
+  router.push({
+    name: 'User Modification',
+    params: { UserId: id },
+  });
+}
+
+function deleteUser(id: User['id']) {
+  // eslint-disable-next-line no-alert
+  const validation = window.confirm(t('CONFIRM.USER'));
+  if (validation === true) {
+    const token = userStore.token;
+    fetch(`http://localhost:3000/api/user/${id}`, {
+      method: 'DELETE',
       headers: {
-        Authorization: `Bearer: ${token}`,
+        Authorization: `Bearer:' ${token}`,
         'Content-Type': 'application/json',
       },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-    this.listenEventBus();
-  },
-  mounted() {
-    this.getUsers();
-  },
-};
+    }).then(() => getUsers());
+  }
+}
+
+const userReturned = computed(() => {
+  return users.value.map((user) => {
+    const parsedCreatedAt = formatDate(user.createdAt);
+    const parsedUpdatedAt = formatDate(user.updatedAt);
+    const userModified = {
+      ...user,
+      updatedAt: parsedUpdatedAt,
+      createdAt: parsedCreatedAt,
+    };
+    return userModified;
+  });
+});
 </script>
 
 <style scoped lang="scss">

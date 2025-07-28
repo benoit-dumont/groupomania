@@ -5,111 +5,101 @@
         <div class="side-container">
           <router-link :to="{ name: 'Accueil' }">
             <p>
-              <img :src="this.getImage()" alt="Logo Groupomania" />
+              <img :src="getImage()" alt="Logo Groupomania" />
             </p>
           </router-link>
           <div class="icons">
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
             >
               <p>
                 <i class="fas fa-home"></i>
-                <span>{{ $t('DASHBOARD.LISTDASHBOARD') }}</span>
+                <span>{{ t('DASHBOARD.LISTDASHBOARD') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'User Dashboard' }"
             >
               <p>
                 <i class="fas fa-user"></i>
-                <span>{{ $t('DASHBOARD.LISTUSER') }}</span>
+                <span>{{ t('DASHBOARD.LISTUSER') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Post Dashboard' }">
               <p>
                 <i class="fas fa-comment-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTPOST') }}</span>
+                <span>{{ t('DASHBOARD.LISTPOST') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Comment Dashboard' }">
               <p>
                 <i class="fas fa-comment"></i>
-                <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
+                <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'Token Dashboard' }"
             >
               <p>
                 <i class="fas fa-ticket-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTTOKEN') }}</span>
+                <span>{{ t('DASHBOARD.LISTTOKEN') }}</span>
               </p>
             </router-link>
           </div>
-          <div class="logout" v-if="this.menuDisplayed === true">
-            <p @click="$store.dispatch('logout')">
-              <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-            </p>
+          <div v-if="menuDisplayed === true" class="logout">
+            <p @click="userStore.logout()"><i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}</p>
           </div>
           <div class="account">
-            <img
-              :src="$store.state.connectedUser.avatar"
-              :alt="$t('ALTIMAGEPROFILE')"
-            />
+            <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
             <i
-              @click="toggleLogout()"
-              v-if="this.menuDisplayed === false"
+              v-if="menuDisplayed === false"
               class="fas fa-sort-down"
+              @click="() => (menuDisplayed = !menuDisplayed)"
             ></i>
-            <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+            <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
           </div>
         </div>
       </div>
       <div class="middle">
         <div class="middle-container">
-          <h2>{{ $t('DASHBOARDPOST.TITLE') }}</h2>
+          <h2>{{ t('DASHBOARDPOST.TITLE') }}</h2>
           <div class="list-posts">
-            <div class="post" v-for="post in posts" :key="post.id">
+            <div
+              v-for="{ id, title, content, media, User, createdAt } in posts"
+              :key="id"
+              class="post"
+            >
               <div class="post-container">
-                <img :src="post.User.avatar" :alt="$t('ALTIMAGEPROFILE')" />
+                <img :src="User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
                 <div class="align">
                   <p>
-                    {{ post.User.name }} {{ post.User.firstname }} <br />
-                    {{ formatDate(post.createdAt) }}
+                    {{ User!.name }} {{ User!.firstname }} <br />
+                    {{ formatDate(createdAt) }}
                   </p>
                 </div>
               </div>
               <div class="post-content">
-                <h2>{{ post.title }}</h2>
+                <h2>{{ title }}</h2>
                 <p>
-                  {{ post.content }}
+                  {{ content }}
                 </p>
-                <div
-                  class="post-image"
-                  v-if="post.media && isImage(post.media)"
-                >
-                  <img :src="post.media" :alt="$t('ALTMEDIA')" />
+                <div v-if="media && isImage(media)" class="post-image">
+                  <img :src="getMediaUrl(media)" :alt="t('ALTMEDIA')" />
                 </div>
-                <div
-                  class="post-video"
-                  v-if="post.media && isVideo(post.media)"
-                >
+                <div v-if="media && isVideo(media)" class="post-video">
                   <video controls width="350" height="200">
-                    <source :src="post.media" type="video/mp4" />
+                    <source :src="getMediaUrl(media)" type="video/mp4" />
                   </video>
                 </div>
               </div>
               <div class="post-actions">
-                <div class="update" @click="updatePost(post)">
+                <div class="update" @click="updatePost(id)">
                   <i class="fa fa-pencil"></i>
                 </div>
-                <deleteAction :data="post" />
+                <deleteAction :data="id" />
               </div>
             </div>
           </div>
@@ -119,118 +109,150 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
+import { Ref, ref, onMounted, onBeforeUnmount } from 'vue';
+import { useHead } from '@vueuse/head';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
+
+import { toast } from 'vue3-toastify';
+
 import deleteAction from '../components/DeleteAction.vue';
-import LogoBlack from '../assets/logo_full_black.png';
-import LogoWhite from '../assets/logo_full_white.png';
 
-export default {
-  metaInfo() {
-    const title = this.$t('DASHBOARDPOST.TITLE');
-    return {
-      title,
-    };
-  },
-  components: { deleteAction },
-  data() {
-    return {
-      posts: [],
-      supportedExtensions: {
-        image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
-        video: ['mp4', 'avi'],
-      },
+import { useUserStore } from '@/stores/';
+import { Post } from '@/types';
+import { formatDate, getImage } from '@/utils';
 
-      menuDisplayed: false,
-    };
+const { t } = useI18n();
+const userStore = useUserStore();
+const router = useRouter();
+
+useHead({
+  title: t('DASHBOARDPOST.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page des posts du tableau de bord du site Groupomania',
+    },
+  ],
+});
+
+const posts: Ref<Post[]> = ref([]);
+const supportedExtensions = ref({
+  image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
+  video: ['mp4', 'avi'],
+});
+const menuDisplayed: Ref<boolean> = ref(false);
+const objectUrlMap = new Map<File, string>();
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  mounted() {
-    EventBus.$on('deleteActionPressed', this.deletePost);
-    this.getPosts();
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
+})
+  .then((response) => response.json())
+  .then((data) => {
+    userStore.saveConnectedUser(data.user);
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+onMounted(() => {
+  EventBus.on('deleteActionPressed', (_payload) => deletePost);
+  getPosts();
+});
+
+function getExtension(media: Post['media']): string | null {
+  if (!media) return null;
+
+  if (typeof media === 'string') {
+    return media.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  if (media instanceof File) {
+    return media.name.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  return null;
+}
+
+function isImage(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.image.includes(ext);
+}
+
+function isVideo(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.video.includes(ext);
+}
+
+function getMediaUrl(media: Post['media']): string {
+  if (!media) return '';
+  if (typeof media === 'string') return media;
+
+  // Si c'est un File
+  if (objectUrlMap.has(media)) {
+    return objectUrlMap.get(media)!;
+  }
+
+  const objectUrl = URL.createObjectURL(media);
+  objectUrlMap.set(media, objectUrl);
+  return objectUrl;
+}
+
+onBeforeUnmount(() => {
+  objectUrlMap.forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+  objectUrlMap.clear();
+});
+
+function getPosts() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/post/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Post[]) => {
+      posts.value = data;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function updatePost(id: Post['id']) {
+  router.push({
+    name: 'Post Modification',
+    params: { PostId: id },
+  });
+}
+
+function deletePost(id: Post['id']) {
+  // eslint-disable-next-line no-alert
+  const validation = window.confirm(t('CONFIRM.POST'));
+  if (validation === true) {
+    const token = userStore.token;
+    fetch(`http://localhost:3000/api/post/${id}`, {
+      method: 'DELETE',
       headers: {
-        Authorization: `Bearer: ${token}`,
+        Authorization: `Bearer:' ${token}`,
         'Content-Type': 'application/json',
       },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-  },
-  methods: {
-    isImage(media) {
-      if (
-        this.supportedExtensions.image.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    isVideo(media) {
-      if (
-        this.supportedExtensions.video.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    getPosts() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/post/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.posts = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    updatePost(post) {
-      this.$router.push({
-        name: 'Post Modification',
-        params: { PostId: post.id },
-      });
-    },
-    deletePost(post) {
-      // eslint-disable-next-line no-alert
-      const validation = window.confirm(this.$t('CONFIRM.POST'));
-      if (validation === true) {
-        const { token } = this.$store.state.token;
-        fetch(`http://localhost:3000/api/post/${post.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer:' ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }).then(() => this.getPosts());
-      }
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-};
+    }).then(() => getPosts());
+  }
+}
 </script>
 
 <style scoped lang="scss">

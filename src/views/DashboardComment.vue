@@ -5,96 +5,97 @@
         <div class="side-container">
           <router-link :to="{ name: 'Accueil' }">
             <p>
-              <img :src="this.getImage()" alt="Logo Groupomania" />
+              <img :src="getImage()" alt="Logo Groupomania" />
             </p>
           </router-link>
           <div class="icons">
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
             >
               <p>
                 <i class="fas fa-home"></i>
-                <span>{{ $t('DASHBOARD.LISTDASHBOARD') }}</span>
+                <span>{{ t('DASHBOARD.LISTDASHBOARD') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'User Dashboard' }"
             >
               <p>
                 <i class="fas fa-user"></i>
-                <span>{{ $t('DASHBOARD.LISTUSER') }}</span>
+                <span>{{ t('DASHBOARD.LISTUSER') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Post Dashboard' }">
               <p>
                 <i class="fas fa-comment-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTPOST') }}</span>
+                <span>{{ t('DASHBOARD.LISTPOST') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Comment Dashboard' }">
               <p>
                 <i class="fas fa-comment"></i>
-                <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
+                <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'Token Dashboard' }"
             >
               <p>
                 <i class="fas fa-ticket-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTTOKEN') }}</span>
+                <span>{{ t('DASHBOARD.LISTTOKEN') }}</span>
               </p>
             </router-link>
           </div>
-          <div class="logout" v-if="this.menuDisplayed === true">
-            <p @click="$store.dispatch('logout')">
-              <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-            </p>
+          <div v-if="menuDisplayed === true" class="logout">
+            <p @click="userStore.logout()"><i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}</p>
           </div>
           <div class="account">
-            <img
-              :src="$store.state.connectedUser.avatar"
-              :alt="$t('ALTIMAGEPROFILE')"
-            />
+            <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
             <i
-              @click="toggleLogout()"
-              v-if="this.menuDisplayed === false"
+              v-if="menuDisplayed === false"
               class="fas fa-sort-down"
+              @click="() => (menuDisplayed = !menuDisplayed)"
             ></i>
-            <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+            <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
           </div>
         </div>
       </div>
       <div class="middle">
         <div class="middle-container">
-          <h2>{{ $t('DASHBOARDCOMMENT.TITLE') }}</h2>
+          <h2>{{ t('DASHBOARDCOMMENT.TITLE') }}</h2>
           <div class="list-comments">
-            <div class="comment" v-for="comment in comments" :key="comment.id">
+            <div v-for="{ id, content, User, createdAt } in comments" :key="id" class="comment">
               <div class="comment-container">
-                <img :src="comment.User.avatar" :alt="$t('ALTIMAGEPROFILE')" />
+                <img :src="User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
                 <div class="align">
                   <p>
-                    {{ comment.User.name }} {{ comment.User.firstname }} <br />
-                    {{ formatDate(comment.createdAt) }}
+                    {{ User!.name }} {{ User!.firstname }} <br />
+                    {{ formatDate(createdAt) }}
                   </p>
                 </div>
               </div>
               <div class="comment-content">
                 <p>
-                  {{ comment.content }}
+                  {{ content }}
                 </p>
               </div>
               <div class="comment-actions">
-                <div class="update" @click="updateComment(comment)">
+                <div
+                  class="update"
+                  @click="
+                    () =>
+                      router.push({
+                        name: 'Comment Modification',
+                        params: { CommentId: id },
+                      })
+                  "
+                >
                   <i class="fa fa-pencil"></i>
                 </div>
-                <deleteAction :data="comment" />
+                <deleteAction :data="id" />
               </div>
             </div>
           </div>
@@ -104,97 +105,90 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
-import deleteAction from '../components/DeleteAction.vue';
-import LogoBlack from '../assets/logo_full_black.png';
-import LogoWhite from '../assets/logo_full_white.png';
+import { Ref, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
 
-export default {
-  metaInfo() {
-    const title = this.$t('DASHBOARDCOMMENT.TITLE');
-    return {
-      title,
-    };
+import { toast } from 'vue3-toastify';
+
+import DeleteAction from '../components/DeleteAction.vue';
+
+import { useUserStore } from '@/stores/';
+import { Comment } from '@/types';
+import { formatDate, getImage } from '@/utils';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const router = useRouter();
+
+useHead({
+  title: t('DASHBOARDCOMMENT.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page du dashboard commentaires du site Groupomania',
+    },
+  ],
+});
+
+const comments: Ref<Comment[]> = ref([]);
+const menuDisplayed: Ref<boolean> = ref(false);
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  components: { deleteAction },
-  data() {
-    return {
-      comments: [],
-      menuDisplayed: false,
-    };
-  },
-  mounted() {
-    EventBus.$on('deleteActionPressed', this.deleteComment);
-    this.getComments();
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
+})
+  .then((response) => response.json())
+  .then((data) => {
+    userStore.saveConnectedUser(data.user);
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+onMounted(() => {
+  EventBus.on('deleteActionPressed', (_payload) => deleteComment);
+  getComments();
+});
+
+function getComments() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/comment/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Comment[]) => {
+      comments.value = data;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function deleteComment(data: Comment['id']) {
+  const validation = window.confirm(t('CONFIRM.COMMENT'));
+  if (validation === true) {
+    const token = userStore.token;
+    fetch(`http://localhost:3000/api/comment/${data}`, {
+      method: 'DELETE',
       headers: {
-        Authorization: `Bearer: ${token}`,
+        Authorization: `Bearer:' ${token}`,
         'Content-Type': 'application/json',
       },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-  },
-  methods: {
-    getComments() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/comment/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.comments = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    updateComment(comment) {
-      this.$router.push({
-        name: 'Comment Modification',
-        params: { CommentId: comment.id },
-      });
-    },
-    deleteComment(comment) {
-      // eslint-disable-next-line no-alert
-      const validation = window.confirm(this.$t('CONFIRM.COMMENT'));
-      if (validation === true) {
-        const { token } = this.$store.state.token;
-        fetch(`http://localhost:3000/api/comment/${comment.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer:' ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }).then(() => this.getComments());
-      }
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-};
+    }).then(() => getComments());
+  }
+}
 </script>
 
 <style scoped lang="scss">

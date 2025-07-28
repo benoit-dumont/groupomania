@@ -5,217 +5,197 @@
         <div class="side-container">
           <router-link :to="{ name: 'Accueil' }">
             <p>
-              <img :src="this.getImage()" alt="Logo Groupomania" />
+              <img :src="getImage()" alt="Logo Groupomania" />
             </p>
           </router-link>
           <div class="icons">
             <router-link :to="{ name: 'Home Dashboard' }">
               <p>
                 <i class="fas fa-home"></i>
-                <span>{{ $t('DASHBOARD.LISTDASHBOARD') }}</span>
+                <span>{{ t('DASHBOARD.LISTDASHBOARD') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'User Dashboard' }"
             >
               <p>
                 <i class="fas fa-user"></i>
-                <span>{{ $t('DASHBOARD.LISTUSER') }}</span>
+                <span>{{ t('DASHBOARD.LISTUSER') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Post Dashboard' }">
               <p>
                 <i class="fas fa-comment-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTPOST') }}</span>
+                <span>{{ t('DASHBOARD.LISTPOST') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Comment Dashboard' }">
               <p>
                 <i class="fas fa-comment"></i>
-                <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
+                <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'Token Dashboard' }"
             >
               <p>
                 <i class="fas fa-ticket-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTTOKEN') }}</span>
+                <span>{{ t('DASHBOARD.LISTTOKEN') }}</span>
               </p>
             </router-link>
           </div>
-          <div class="logout" v-if="this.menuDisplayed === true">
-            <p @click="$store.dispatch('logout')">
-              <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-            </p>
+          <div v-if="menuDisplayed === true" class="logout">
+            <p @click="userStore.logout()"><i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}</p>
           </div>
           <div class="account">
-            <img
-              :src="$store.state.connectedUser.avatar"
-              :alt="$t('ALTIMAGEPROFILE')"
-            />
+            <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
             <i
-              @click="toggleLogout()"
-              v-if="this.menuDisplayed === false"
+              v-if="menuDisplayed === false"
               class="fas fa-sort-down"
+              @click="() => (menuDisplayed = !menuDisplayed)"
             ></i>
-            <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+            <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
           </div>
         </div>
       </div>
       <div class="middle">
         <div class="middle-container">
-          <h2>{{ $t('DASHBOARDTOKEN.TITLE') }}</h2>
-          <data-table :columns="columns" :data="tokenReturned" />
+          <h2>{{ t('DASHBOARDTOKEN.TITLE') }}</h2>
+          <EasyDataTable
+            :rows="tokenReturned"
+            :columns="headers"
+            :searchable="true"
+            :sortable="true"
+            :pagination="true"
+            :per-page="5"
+          >
+            <template #delete="{ row }">
+              <deleteAction :data="row.id" />
+            </template>
+          </EasyDataTable>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
-import deleteActionAdmin from '../components/DeleteAction.vue';
-import LogoBlack from '../assets/logo_full_black.png';
-import LogoWhite from '../assets/logo_full_white.png';
+import { computed, onMounted, Ref, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { toast } from 'vue3-toastify';
 
-export default {
-  metaInfo() {
-    const title = this.$t('DASHBOARDTOKEN.TITLE');
-    return {
-      title,
-    };
-  },
-  data() {
-    return {
-      tokens: [],
-      columns: [
-        {
-          key: 'id',
-          title: 'Id',
-          type: 'number',
-        },
-        {
-          key: 'createdAt',
-          title: this.$t('DATATABLE.CREATEDAT'),
-          type: 'string',
-        },
-        {
-          key: 'token',
-          title: this.$t('DATATABLE.TOKEN'),
-          component: {
-            props: ['data'],
-            render(createElement) {
-              return createElement(
-                'div',
-                {
-                  class: 'token-style',
-                },
-                this.data.token,
-              );
-            },
-          },
-        },
-        {
-          key: 'userAgent',
-          title: 'User Agent',
-          type: 'string',
-        },
-        {
-          key: 'ipAddress',
-          title: this.$t('DATATABLE.IPADDRESS'),
-          type: 'string',
-        },
-        {
-          title: this.$t('DATATABLE.REVOKE'),
-          component: deleteActionAdmin,
-          sortable: false,
-          searchable: false,
-        },
-      ],
+import DeleteAction from '../components/DeleteAction.vue';
 
-      menuDisplayed: false,
-    };
+import type { Header } from 'vue3-easy-data-table';
+import { useUserStore } from '@/stores/';
+import { Token } from '@/types';
+import { formatDate, getImage } from '@/utils';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+
+useHead({
+  title: t('DASHBOARDTOKEN.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page des tokens du tableau de bord du site Groupomania',
+    },
+  ],
+});
+
+const tokens: Ref<Token[]> = ref([]);
+const headers: Header[] = [
+  {
+    text: 'Id',
+    value: 'id',
   },
-  methods: {
-    getTokens() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/token/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer:' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.tokens = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    revokeToken(tokenData) {
-      // eslint-disable-next-line no-alert
-      const validation = window.confirm(this.$t('CONFIRM.TOKEN'));
-      if (validation === true) {
-        const { token } = this.$store.state.token;
-        fetch(`http://localhost:3000/api/token/${tokenData.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer:' ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }).then(() => this.getTokens());
-      }
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
+  {
+    text: t('DATATABLE.CREATEDAT'),
+    value: 'createdAt',
   },
-  mounted() {
-    EventBus.$on('deleteActionPressed', this.revokeToken);
-    this.getTokens();
+  {
+    text: t('DATATABLE.TOKEN'),
+    value: 'token',
   },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
+  {
+    text: 'User Agent',
+    value: 'userAgent',
+  },
+  {
+    text: t('DATATABLE.IPADDRESS'),
+    value: 'ipAddress',
+  },
+  {
+    text: t('DATATABLE.REVOKE'),
+    value: 'revoke',
+    sortable: false,
+  },
+];
+const menuDisplayed: Ref<boolean> = ref(false);
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
+  },
+})
+  .then((response) => response.json())
+  .then((data) => {
+    userStore.saveConnectedUser(data.user);
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+onMounted(() => {
+  EventBus.on('deleteActionPressed', (_payload) => revokeToken);
+  getTokens();
+});
+
+const tokenReturned = computed(() =>
+  tokens.value.map((token) => ({
+    ...token,
+    createdAt: formatDate(token.createdAt),
+  })),
+);
+
+function getTokens() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/token/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer:' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Token[]) => {
+      tokens.value = data;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+function revokeToken(id: Token['id']) {
+  const validation = window.confirm(t('CONFIRM.TOKEN'));
+  if (validation === true) {
+    const token = userStore.token;
+    fetch(`http://localhost:3000/api/token/${id}`, {
+      method: 'DELETE',
       headers: {
-        Authorization: `Bearer: ${token}`,
+        Authorization: `Bearer:' ${token}`,
         'Content-Type': 'application/json',
       },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-  },
-  computed: {
-    tokenReturned() {
-      return this.tokens.map((token) => {
-        const parsedCreatedAt = this.formatDate(token.createdAt);
-        const tokenModified = {
-          ...token,
-          createdAt: parsedCreatedAt,
-        };
-        return tokenModified;
-      });
-    },
-  },
-};
+    }).then(() => getTokens());
+  }
+}
 </script>
 
 <style scoped lang="scss">

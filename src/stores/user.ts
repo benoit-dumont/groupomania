@@ -5,7 +5,6 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     token: null as TokenData | null,
     connectedUser: null as User | null,
-    myPosts: null as any,
   }),
   actions: {
     saveToken(newToken: TokenData) {
@@ -14,13 +13,10 @@ export const useUserStore = defineStore('user', {
     saveConnectedUser(user: User) {
       this.connectedUser = user;
     },
-    saveMyPosts(posts: any) {
-      this.myPosts = posts;
-    },
+
     logout() {
       this.token = null;
       this.connectedUser = null;
-      this.myPosts = null;
     },
   },
   persist: {

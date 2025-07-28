@@ -3,26 +3,19 @@
     <div class="content">
       <div class="sidebar">
         <div class="icons">
-          <img :src="this.getImage()" alt="Logo" />
+          <img :src="getImage()" alt="Logo" />
           <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"
-              ><i class="fas fa-home"></i
-            ></router-link>
+            <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
             <router-link
               :to="{
                 name: 'Profil',
-                params: { UserId: $store.state.connectedUser.id },
+                params: { UserId: userStore.connectedUser!.id },
               }"
               ><i class="fas fa-user"></i
             ></router-link>
-            <router-link :to="{ name: 'Settings' }"
-              ><i class="fas fa-cog"></i
-            ></router-link>
+            <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser?.rank === 1 || userStore.connectedUser?.rank === 2"
               :to="{ name: 'Home Dashboard' }"
               ><i class="fas fa-tools"></i
             ></router-link>
@@ -31,159 +24,139 @@
         <div class="box-posts">
           <div class="up">
             <div class="account">
-              <img
-                :src="$store.state.connectedUser.avatar"
-                :alt="$t('ALTIMAGEPROFILE')"
-              />
+              <img :src="userStore.connectedUser?.avatar" :alt="t('ALTIMAGEPROFILE')" />
               <i
-                @click="toggleLogout()"
-                v-if="this.menuDisplayed === false"
+                v-if="menuDisplayed === false"
                 class="fas fa-sort-down"
+                @click="() => (menuDisplayed = !menuDisplayed)"
               ></i>
-              <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+              <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
             </div>
             <transition name="logout">
-              <div class="logout" v-if="this.menuDisplayed === true">
-                <p @click="$store.dispatch('logout')">
-                  <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
+              <div v-if="menuDisplayed === true" class="logout">
+                <p @click="() => userStore.logout()">
+                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
                 </p>
               </div>
             </transition>
           </div>
           <div class="posts">
-            <h1>{{ $t('ACCUEIL.CREATEPOST') }}</h1>
+            <h1>{{ t('ACCUEIL.CREATEPOST') }}</h1>
             <form @submit.prevent="submit">
               <input
+                v-model="title"
                 type="text"
                 name="title"
                 class="title-form"
-                :placeholder="$t('ACCUEIL.TITLEPLACEHOLDER')"
-                v-model="title"
+                :placeholder="t('ACCUEIL.TITLEPLACEHOLDER')"
               />
               <input
+                v-model="contentPost"
                 type="text"
                 class="content-form-post"
-                :placeholder="$t('ACCUEIL.CONTENTPLACEHOLDER')"
-                v-model="contentPost"
+                :placeholder="t('ACCUEIL.CONTENTPLACEHOLDER')"
               />
               <label for="post-image"><i class="fas fa-camera"></i></label>
-              <input type="file" id="post-image" @change="tempStoreImage" />
+              <input id="post-image" type="file" @change="tempStoreImage" />
 
-              <input
-                type="submit"
-                :value="$t('ACCUEIL.BUTTONPOSTVALUE')"
-                class="btn"
-              />
-              <p class="filename" v-if="this.media">
-                {{ $t('ACCUEIL.SELECTEDIMAGE') }}
+              <input type="submit" :value="t('ACCUEIL.BUTTONPOSTVALUE')" class="btn" />
+              <p v-if="media" class="filename">
+                {{ t('ACCUEIL.SELECTEDIMAGE') }}
                 <i class="fas fa-check-circle"></i>
               </p>
             </form>
             <div v-if="posts.length !== 0">
-              <div class="post" v-for="post in posts" :key="post.id">
+              <div
+                v-for="{
+                  id,
+                  content,
+                  media,
+                  UserId,
+                  User,
+                  Reactions,
+                  Comments,
+                  createdAt,
+                } in posts"
+                :key="id"
+                class="post"
+              >
                 <div class="post-container">
-                  <router-link
-                    :to="{ name: 'Profil', params: { UserId: post.UserId } }"
-                  >
-                    <img :src="post.User.avatar" :alt="$t('ALTIMAGEPROFILE')" />
+                  <router-link :to="{ name: 'Profil', params: { UserId } }">
+                    <img :src="User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
                   </router-link>
                   <div class="align">
-                    <router-link
-                      :to="{ name: 'Profil', params: { UserId: post.UserId } }"
-                    >
+                    <router-link :to="{ name: 'Profil', params: { UserId } }">
                       <p>
-                        {{ post.User.name }} {{ post.User.firstname }} <br />
-                        {{ formatDate(post.createdAt) }}
+                        {{ User!.name }} {{ User!.firstname }} <br />
+                        {{ formatDate(createdAt) }}
                       </p>
                     </router-link>
                   </div>
                 </div>
                 <div class="post-content">
-                  <router-link
-                    :to="{ name: 'Post', params: { PostId: post.id } }"
-                  >
-                    <h2>{{ post.title }}</h2>
+                  <router-link :to="{ name: 'Post', params: { PostId: id } }">
+                    <h2>{{ title }}</h2>
                   </router-link>
-                  <router-link
-                    :to="{ name: 'Post', params: { PostId: post.id } }"
-                  >
+                  <router-link :to="{ name: 'Post', params: { PostId: id } }">
                     <p>
-                      {{ post.content }}
+                      {{ content }}
                     </p>
                   </router-link>
-                  <div
-                    class="post-image"
-                    v-if="post.media && isImage(post.media)"
-                  >
-                    <router-link
-                      :to="{ name: 'Post', params: { PostId: post.id } }"
-                    >
-                      <img :src="post.media" :alt="$t('ALTMEDIA')" />
+                  <div v-if="media && isImage(media)" class="post-image">
+                    <router-link :to="{ name: 'Post', params: { PostId: id } }">
+                      <img :src="mediaUrl" :alt="t('ALTMEDIA')" />
                     </router-link>
                   </div>
-                  <div
-                    class="post-video"
-                    v-if="post.media && isVideo(post.media)"
-                  >
+
+                  <div v-if="media && isVideo(media)" class="post-video">
                     <video controls width="350" height="200">
-                      <source :src="post.media" type="video/mp4" />
+                      <source :src="mediaUrl" type="video/mp4" />
                     </video>
                   </div>
                   <div class="comments">
-                    <form
-                      class="form-add-comment"
-                      @submit.prevent="createComment(post)"
-                    >
+                    <form class="form-add-comment" @submit.prevent="createComment(id)">
                       <input
+                        v-model="comContent"
                         type="text"
                         name="comContent"
                         class="comment-content"
                         placeholder="Ajouter un commentaire"
-                        v-model="comContent"
                       />
-                      <input
-                        type="submit"
-                        :value="$t('ACCUEIL.BUTTONPOSTVALUE')"
-                        class="btn"
-                      />
+                      <input type="submit" :value="t('ACCUEIL.BUTTONPOSTVALUE')" class="btn" />
                     </form>
                   </div>
                 </div>
                 <div
-                  class="post-actions"
                   v-if="
-                    $store.state.connectedUser.id === post.User.id ||
-                    $store.state.connectedUser.rank === 1 ||
-                    $store.state.connectedUser.rank === 2
+                    userStore.connectedUser?.id === User!.id ||
+                    userStore.connectedUser?.rank === 1 ||
+                    userStore.connectedUser?.rank === 2
                   "
+                  class="post-actions"
                 >
-                  <div class="update" @click="updatePost(post)">
+                  <div class="update" @click="updatePost(id)">
                     <i class="fa fa-pencil"></i>
                   </div>
-                  <deleteAction :data="post" />
+                  <deleteAction :data="id" />
                 </div>
                 <div class="post-infos">
-                  <router-link
-                    :to="{ name: 'Post', params: { PostId: post.id } }"
-                  >
+                  <router-link :to="{ name: 'Post', params: { PostId: id } }">
                     <p>
-                      {{ post.Reactions.length }}
-                      <span>{{ $t('DASHBOARD.LISTREACTS') }}</span>
+                      {{ Reactions.length }}
+                      <span>{{ t('DASHBOARD.LISTREACTS') }}</span>
                     </p>
                   </router-link>
-                  <router-link
-                    :to="{ name: 'Post', params: { PostId: post.id } }"
-                  >
+                  <router-link :to="{ name: 'Post', params: { PostId: id } }">
                     <p>
-                      {{ post.Comments.length }}
-                      <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
+                      {{ Comments.length }}
+                      <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
                     </p>
                   </router-link>
                 </div>
               </div>
             </div>
-            <div class="no-post" v-else>
-              <h2>{{ $t('NO.POST.HOME') }}</h2>
+            <div v-else class="no-post">
+              <h2>{{ t('NO.POST.HOME') }}</h2>
             </div>
           </div>
         </div>
@@ -192,204 +165,245 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
-import deleteAction from '../components/DeleteAction.vue';
-import LogoWhite from '../assets/logo_white.png';
-import LogoBlack from '../assets/logo_black.png';
+import { ref, onMounted, Ref, computed, onBeforeUnmount, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { toast } from 'vue3-toastify';
 
-export default {
-  name: 'Accueil',
-  metaInfo() {
-    const title = this.$t('ACCUEIL.TITLE');
-    return {
-      title,
-    };
+import DeleteAction from '../components/DeleteAction.vue';
+
+import { useUserStore } from '@/stores/';
+import { Post } from '@/types';
+import { formatDate, getImage } from '@/utils';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const router = useRouter();
+
+useHead({
+  title: t('ACCUEIL.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page d’accueil du site Groupomania',
+    },
+  ],
+});
+
+const title = ref('');
+const contentPost = ref('');
+const media: Ref<Post['media']> = ref(null);
+const posts: Ref<Post[]> = ref([]);
+const supportedExtensions = ref({
+  image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
+  video: ['mp4', 'avi'],
+});
+const menuDisplayed: Ref<boolean> = ref(false);
+const comContent = ref('');
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  components: { deleteAction },
-  data() {
-    return {
-      title: '',
-      contentPost: '',
-      media: '',
-      posts: [],
-      supportedExtensions: {
-        image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
-        video: ['mp4', 'avi'],
-      },
-      menuDisplayed: false,
-      commentsDisplayed: false,
-      comContent: '',
-    };
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
+})
+  .then((response) => response.json())
+  .then(({ user }) => {
+    userStore.saveConnectedUser(user);
+  })
+  .catch(() => {
+    return toast.success(t('ERROR.GENERAL'), {
+      position: toast.POSITION.BOTTOM_RIGHT,
+    });
+  });
+
+onMounted(() => {
+  EventBus.on('deleteActionPressed', (_payload) => deletePost);
+  fetchPosts();
+});
+
+function fetchPosts() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/post', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer: ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => (posts.value = data))
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'), {
+        position: toast.POSITION.BOTTOM_RIGHT,
+      });
+    });
+}
+
+function submit() {
+  if (title.value.length === 0) {
+    return toast.error(t('TITLE.INPUT'), {
+      position: toast.POSITION.BOTTOM_RIGHT,
+    });
+  }
+  if (contentPost.value.length === 0) {
+    return toast.error(t('CONTENT.INPUT'));
+  }
+  const regexTitle =
+    /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?'"! _-]{2,15}$/;
+  const regexContent =
+    /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
+  if (!regexTitle.test(title.value)) {
+    return toast.error(t('TITLE.FORMAT'));
+  }
+  if (!regexContent.test(contentPost.value)) {
+    return toast.error(t('CONTENT.FORMAT'));
+  }
+  const token = userStore.token;
+  if (media.value) {
+    const data = new FormData();
+    data.append('media', media.value);
+    data.append('title', title.value);
+    data.append('content', contentPost.value);
+    return fetch('http://localhost:3000/api/post', {
+      method: 'POST',
       headers: {
         Authorization: `Bearer: ${token}`,
-        'Content-Type': 'application/json',
       },
+      body: data,
     })
       .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$tvToastify.error(this.$t('ERROR.GENERAL'));
+      .then(() => {
+        fetchPosts();
+        return toast.success(t('POST.CREATED.WITHMEDIA'));
       });
-  },
-  mounted() {
-    EventBus.$on('deleteActionPressed', this.deletePost);
-    this.fetchPosts();
-  },
-  methods: {
-    fetchPosts() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/post', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer: ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.posts = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
+  }
+  return fetch('http://localhost:3000/api/post', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer: ${token}`,
+      'Content-Type': 'application/json',
     },
-    isImage(media) {
-      if (
-        this.supportedExtensions.image.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
+    body: JSON.stringify({
+      title: title.value,
+      content: contentPost.value,
+    }),
+  })
+    .then((response) => response.json())
+    .then(() => {
+      fetchPosts();
+      return toast.success(t('POST.CREATED.WITHOUTMEDIA'));
+    });
+}
+
+function createComment(data: Post['id']) {
+  const regexContent =
+    /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
+  if (!regexContent.test(comContent.value)) {
+    return toast.error(t('COMMENT.CONTENT.FORMAT'));
+  }
+  const token = userStore.token;
+  return fetch('http://localhost:3000/api/comment', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer: ${token}`,
+      'Content-Type': 'application/json',
     },
-    isVideo(media) {
-      if (
-        this.supportedExtensions.video.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    submit() {
-      if (this.title.length === 0) {
-        return this.$vToastify.error(this.$t('TITLE.INPUT'));
-      }
-      if (this.contentPost.length === 0) {
-        return this.$vToastify.error(this.$t('CONTENT.INPUT'));
-      }
-      const regexTitle =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?'"! _-]{2,15}$/;
-      const regexContent =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
-      if (!regexTitle.test(this.title)) {
-        return this.$vToastify.error(this.$t('TITLE.FORMAT'));
-      }
-      if (!regexContent.test(this.contentPost)) {
-        return this.$vToastify.error(this.$t('CONTENT.FORMAT'));
-      }
-      const { token } = this.$store.state.token;
-      if (this.media) {
-        const data = new FormData();
-        data.append('media', this.media);
-        data.append('title', this.title);
-        data.append('content', this.contentPost);
-        return fetch('http://localhost:3000/api/post', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer: ${token}`,
-          },
-          body: data,
-        })
-          .then((response) => response.json())
-          .then(() => {
-            this.fetchPosts();
-            return this.$vToastify.success(this.$t('POST.CREATED.WITHMEDIA'));
-          });
-      }
-      return fetch('http://localhost:3000/api/post', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer: ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: this.title,
-          content: this.contentPost,
-        }),
-      })
-        .then((response) => response.json())
-        .then(() => {
-          this.fetchPosts();
-          return this.$vToastify.success(this.$t('POST.CREATED.WITHOUTMEDIA'));
-        });
-    },
-    createComment(post) {
-      const regexContent =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
-      if (!regexContent.test(this.comContent)) {
-        return this.$vToastify.error(this.$t('COMMENT.CONTENT.FORMAT'));
-      }
-      const { token } = this.$store.state.token;
-      return fetch('http://localhost:3000/api/comment', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer: ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: this.comContent,
-          PostId: post.id,
-        }),
-      })
-        .then((response) => response.json())
-        .then(() => {
-          this.fetchPosts();
-          return this.$vToastify.success(this.$t('COMMENT.SUCCESS'));
-        });
-    },
-    tempStoreImage(e) {
-      const file = e.target.files[0];
-      this.media = file;
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-    updatePost(post) {
-      this.$router.push({
-        name: 'Post Modification',
-        params: { PostId: post.id },
-      });
-    },
-    deletePost(post) {
-      // eslint-disable-next-line no-alert
-      const validation = window.confirm(this.$t('CONFIRM.POST'));
-      if (validation === true) {
-        const { token } = this.$store.state.token;
-        fetch(`http://localhost:3000/api/post/${post.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer:' ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }).then(() => this.fetchPosts());
-      }
-    },
-  },
-};
+    body: JSON.stringify({
+      content: comContent.value,
+      PostId: data,
+    }),
+  })
+    .then((response) => response.json())
+    .then(() => {
+      fetchPosts();
+      return toast.success(t('COMMENT.SUCCESS'));
+    });
+}
+
+function tempStoreImage(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (input.files && input.files.length > 0) {
+    const file = input.files[0];
+    media.value = file;
+  }
+}
+
+function getExtension(media: Post['media']): string | null {
+  if (!media) return null;
+
+  if (typeof media === 'string') {
+    return media.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  if (media instanceof File) {
+    return media.name.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  return null;
+}
+
+function isImage(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.image.includes(ext);
+}
+
+function isVideo(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.video.includes(ext);
+}
+
+const mediaUrl = computed(() => {
+  if (!media.value) return '';
+  if (typeof media.value === 'string') return media.value;
+  return URL.createObjectURL(media.value);
+});
+
+// Pour éviter les fuites mémoire, on révoque l’URL quand le media change
+let currentObjectUrl: string | null = null;
+watch(media, (newVal, oldVal) => {
+  if (currentObjectUrl) {
+    URL.revokeObjectURL(currentObjectUrl);
+    currentObjectUrl = null;
+  }
+  if (newVal instanceof File) {
+    currentObjectUrl = URL.createObjectURL(newVal);
+  }
+});
+
+onBeforeUnmount(() => {
+  if (currentObjectUrl) {
+    URL.revokeObjectURL(currentObjectUrl);
+  }
+});
+
+function updatePost(id: Post['id']) {
+  router.push({
+    name: 'Post Modification',
+    params: { PostId: id },
+  });
+}
+
+function deletePost(id: Post['id']) {
+  const validation = window.confirm(t('CONFIRM.POST'));
+  if (validation) {
+    const token = userStore.token;
+    fetch(`http://localhost:3000/api/post/${id}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer:' ${token}`,
+        'Content-Type': 'application/json',
+      },
+    }).then(() => fetchPosts());
+  }
+}
 </script>
 
 <style scoped lang="scss">

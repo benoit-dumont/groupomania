@@ -4,114 +4,97 @@
       <div class="side">
         <div class="side-container">
           <router-link :to="{ name: 'Accueil' }">
-            <img :src="this.getImage()" alt="Logo Groupomania" />
+            <img :src="getImage()" alt="Logo Groupomania" />
           </router-link>
           <div class="icons">
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
             >
               <p>
                 <i class="fas fa-home"></i>
-                <span>{{ $t('DASHBOARD.LISTDASHBOARD') }}</span>
+                <span>{{ t('DASHBOARD.LISTDASHBOARD') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'User Dashboard' }"
             >
               <p>
                 <i class="fas fa-user"></i>
-                <span>{{ $t('DASHBOARD.LISTUSER') }}</span>
+                <span>{{ t('DASHBOARD.LISTUSER') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Post Dashboard' }">
               <p>
                 <i class="fas fa-comment-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTPOST') }}</span>
+                <span>{{ t('DASHBOARD.LISTPOST') }}</span>
               </p>
             </router-link>
             <router-link :to="{ name: 'Comment Dashboard' }">
               <p>
                 <i class="fas fa-comment"></i>
-                <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
+                <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
               </p>
             </router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1"
+              v-if="userStore.connectedUser!.rank === 1"
               :to="{ name: 'Token Dashboard' }"
             >
               <p>
                 <i class="fas fa-ticket-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTTOKEN') }}</span>
+                <span>{{ t('DASHBOARD.LISTTOKEN') }}</span>
               </p>
             </router-link>
           </div>
-          <div class="logout" v-if="this.menuDisplayed === true">
-            <p @click="$store.dispatch('logout')">
-              <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-            </p>
+          <div v-if="menuDisplayed === true" class="logout">
+            <p @click="userStore.logout()"><i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}</p>
           </div>
           <div class="account">
-            <img
-              :src="$store.state.connectedUser.avatar"
-              :alt="$t('ALTIMAGEPROFILE')"
-            />
+            <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
             <i
-              @click="toggleLogout()"
-              v-if="this.menuDisplayed === false"
+              v-if="menuDisplayed === false"
               class="fas fa-sort-down"
+              @click="() => (menuDisplayed = !menuDisplayed)"
             ></i>
-            <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+            <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
           </div>
         </div>
       </div>
       <div class="middle">
         <div class="middle-container">
-          <h2>{{ $t('DASHBOARDHOME.TITLE') }}</h2>
+          <h2>{{ t('DASHBOARDHOME.TITLE') }}</h2>
           <div class="data">
-            <div
-              class="data-nb-users"
-              v-if="$store.state.connectedUser.rank === 1"
-            >
+            <div v-if="userStore.connectedUser!.rank === 1" class="data-nb-users">
               <div class="data-container">
-                <h3>{{ $t('DASHBOARDHOME.NBUSERS') }}</h3>
-                <span>{{ this.nbUsers }}</span>
+                <h3>{{ t('DASHBOARDHOME.NBUSERS') }}</h3>
+                <span>{{ nbUsers }}</span>
               </div>
             </div>
             <div class="data-nb-posts">
               <div class="data-container">
-                <h3>{{ $t('DASHBOARDHOME.NBPOSTS') }}</h3>
-                <span>{{ this.nbPosts }}</span>
+                <h3>{{ t('DASHBOARDHOME.NBPOSTS') }}</h3>
+                <span>{{ nbPosts }}</span>
               </div>
             </div>
             <div class="data-nb-reactions">
               <div class="data-container">
-                <h3>{{ $t('DASHBOARDHOME.NBREACTS') }}</h3>
-                <span>{{ this.nbReactions }}</span>
+                <h3>{{ t('DASHBOARDHOME.NBREACTS') }}</h3>
+                <span>{{ nbReactions }}</span>
               </div>
             </div>
             <div class="data-nb-commentaires">
               <div class="data-container">
-                <h3>{{ $t('DASHBOARDHOME.NBCOM') }}</h3>
-                <span>{{ this.nbComments }}</span>
+                <h3>{{ t('DASHBOARDHOME.NBCOM') }}</h3>
+                <span>{{ nbComments }}</span>
               </div>
             </div>
           </div>
           <div class="package-info">
-            <AvailableUpdate
-              stack="back"
-              v-if="$store.state.connectedUser.rank === 1"
-            />
-            <AvailableUpdate
-              stack="front"
-              v-if="$store.state.connectedUser.rank === 1"
-            />
-            <p class="no-dependencies" v-else>
-              {{ $t('NO.DEPENDENCIES') }}
+            <AvailableUpdate v-if="userStore.connectedUser!.rank === 1" stack="back" />
+            <AvailableUpdate v-if="userStore.connectedUser!.rank === 1" stack="front" />
+            <p v-else class="no-dependencies">
+              {{ t('NO.DEPENDENCIES') }}
             </p>
           </div>
         </div>
@@ -120,134 +103,147 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { toast } from 'vue3-toastify';
+
 import AvailableUpdate from '../components/AvailableUpdate.vue';
-import LogoWhite from '../assets/logo_full_white.png';
-import LogoBlack from '../assets/logo_full_black.png';
 
-export default {
-  metaInfo() {
-    const title = this.$t('DASHBOARDHOME.TITLE');
-    return {
-      title,
-    };
-  },
-  components: { AvailableUpdate },
-  data() {
-    return {
-      nbUsers: '0',
-      nbPosts: '0',
-      nbReactions: '0',
-      nbComments: '0',
+import { useUserStore } from '@/stores/';
+import { Comment, Post, Reaction, User } from '@/types';
+import { getImage } from '@/utils';
 
-      menuDisplayed: false,
-    };
+const { t } = useI18n();
+const userStore = useUserStore();
+
+useHead({
+  title: t('DASHBOARDHOME.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page d’accueil du dashboard du site Groupomania',
+    },
+  ],
+});
+
+const nbUsers = ref(0);
+const nbPosts = ref(0);
+const nbReactions = ref(0);
+const nbComments = ref(0);
+const menuDisplayed = ref(false);
+
+getPostsCount();
+getReactionsCount();
+getCommentsCount();
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  async created() {
-    this.getPostsCount();
-    this.getReactionsCount();
-    this.getCommentsCount();
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer: ${token}`,
-        'Content-Type': 'application/json',
-      },
+})
+  .then((response) => response.json())
+  .then((data) => {
+    userStore.saveConnectedUser(data.user);
+    if (userStore.connectedUser!.rank !== 1) return false;
+    getUsersCount();
+    return true;
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+function getUsersCount() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/user/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer:' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: User[]) => {
+      nbUsers.value = data.length;
     })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-        if (this.$store.state.connectedUser.rank !== 1) return false;
-        this.getUsersCount();
-        return true;
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function getPostsCount() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/post/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Post[]) => {
+      nbPosts.value = data.length;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function getReactionsCount() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/reaction/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Reaction[]) => {
+      nbReactions.value = data.length;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function getCommentsCount() {
+  const token = userStore.token;
+  fetch('http://localhost:3000/api/comment/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Comment[]) => {
+      nbComments.value = data.length;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+</script>
+
+<!--
+
   },
   methods: {
-    getUsersCount() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/user/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer:' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.nbUsers = data.length;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    getPostsCount() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/post/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.nbPosts = data.length;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    getReactionsCount() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/reaction/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.nbReactions = data.length;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    getCommentsCount() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/comment/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.nbComments = data.length;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
+
+
+
+
+
     toggleLogout() {
       this.menuDisplayed = !this.menuDisplayed;
     },
   },
 };
-</script>
+</script> -->
 
 <style scoped lang="scss">
 .content {

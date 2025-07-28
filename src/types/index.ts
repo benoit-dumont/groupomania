@@ -4,6 +4,7 @@ export interface User {
   id: number;
   name: string;
   firstname: string;
+  username: string;
   email: string;
   password: string;
   avatar: string;
@@ -13,6 +14,10 @@ export interface User {
   reponse: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface UserId extends User {
+  Posts: Post[];
 }
 
 export interface Reaction {
@@ -34,6 +39,10 @@ export interface Comment {
   User?: Partial<User>;
 }
 
+export interface CommentId extends Comment {
+  Post?: Partial<Post>;
+}
+
 export interface Post {
   id: number;
   title: string;
@@ -47,7 +56,23 @@ export interface Post {
   Comments: [] | Comment[];
 }
 
-export interface TokenData {
+export interface Token {
+  id: number;
   token: string;
+  userAgent: string;
+  ipAddress: string;
+  createdAt: string;
+  UserId: User['id'];
+}
+
+export interface TokenData {
+  token: Token['token'];
   date: number;
+}
+
+export interface ReactionTypes {
+  type: Reaction['type'];
+  icon: string;
+  onClass: string;
+  offClass: string;
 }

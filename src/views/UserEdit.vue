@@ -3,26 +3,19 @@
     <div class="content">
       <div class="sidebar">
         <div class="icons">
-          <img :src="this.getImage()" alt="Logo" />
+          <img :src="getImage()" alt="Logo" />
           <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"
-              ><i class="fas fa-home"></i
-            ></router-link>
+            <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
             <router-link
               :to="{
                 name: 'Profil',
-                params: { UserId: $store.state.connectedUser.id },
+                params: { UserId: userStore.connectedUser!.id },
               }"
               ><i class="fas fa-user"></i
             ></router-link>
-            <router-link :to="{ name: 'Settings' }"
-              ><i class="fas fa-cog"></i
-            ></router-link>
+            <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
               ><i class="fas fa-tools"></i
             ></router-link>
@@ -31,112 +24,104 @@
         <div class="box-posts">
           <div class="up">
             <div class="account">
-              <img
-                :src="$store.state.connectedUser.avatar"
-                :alt="$t('ALTIMAGEPROFILE')"
-              />
+              <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
               <i
-                @click="toggleLogout()"
-                v-if="this.menuDisplayed === false"
+                v-if="menuDisplayed === false"
                 class="fas fa-sort-down"
+                @click="() => (menuDisplayed = !menuDisplayed)"
               ></i>
-              <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+              <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
             </div>
             <transition name="logout">
-              <div class="logout" v-if="this.menuDisplayed === true">
-                <p @click="$store.dispatch('logout')">
-                  <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
+              <div v-if="menuDisplayed === true" class="logout">
+                <p @click="userStore.logout()">
+                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
                 </p>
               </div>
             </transition>
           </div>
           <div class="update">
-            <h1>{{ $t('USEREDIT.TITLE') }}</h1>
+            <h1>{{ t('USEREDIT.TITLE') }}</h1>
             <div class="update-container">
               <label for="post-image" class="design">
                 <div class="message">
-                  <img :src="user.avatar" :alt="$t('ALTIMAGEPROFILE')" />
-                  <p>{{ $t('USEREDIT.IMGOPACITYMESSAGE') }}</p>
+                  <img :src="user.avatar" :alt="t('ALTIMAGEPROFILE')" />
+                  <p>{{ t('USEREDIT.IMGOPACITYMESSAGE') }}</p>
                 </div>
-                <input
-                  type="file"
-                  id="post-image"
-                  class="upload"
-                  @change="updateImage"
-                />
+                <input id="post-image" type="file" class="upload" @change="updateImage" />
               </label>
               <div class="update-form">
-                <form @submit.prevent="submit" class="form-user-edit">
+                <form class="form-user-edit" @submit.prevent="submit">
                   <div class="champ">
-                    <label>{{ $t('USEREDIT.NAMELABEL') }} *</label>
+                    <label>{{ t('USEREDIT.NAMELABEL') }} *</label>
                     <br />
                     <input
+                      v-model="user.name"
                       type="text"
                       name="nom"
-                      :placeholder="$t('USEREDIT.NAMEPLACEHOLDER')"
-                      v-model="user.name"
-                      :pattern="patternName"
+                      :placeholder="t('USEREDIT.NAMEPLACEHOLDER')"
+                      :pattern="patternNameString"
                     />
                   </div>
                   <div class="champ">
-                    <label>{{ $t('USEREDIT.FIRSTNAMELABEL') }} *</label>
+                    <label>{{ t('USEREDIT.FIRSTNAMELABEL') }} *</label>
                     <br />
                     <input
+                      v-model="user.firstname"
                       type="text"
                       name="prenom"
-                      :placeholder="$t('USEREDIT.FIRSTNAMEPLACEHOLDER')"
-                      v-model="user.firstname"
-                      :pattern="patternFirstname"
+                      :placeholder="t('USEREDIT.FIRSTNAMEPLACEHOLDER')"
+                      :pattern="patternFirstnameString"
                     />
                   </div>
                   <div class="champ">
-                    <label>{{ $t('USEREDIT.USERNAMELABEL') }} *</label>
+                    <label>{{ t('USEREDIT.USERNAMELABEL') }} *</label>
                     <br />
                     <input
+                      v-model="user.username"
                       type="text"
                       name="username"
-                      :placeholder="$t('USEREDIT.USERNAMEPLACEHOLDER')"
-                      v-model="user.username"
-                      :pattern="patternUsername"
+                      :placeholder="t('USEREDIT.USERNAMEPLACEHOLDER')"
+                      :pattern="patternUsernameString"
                     />
                   </div>
                   <div class="champ">
-                    <label>{{ $t('USEREDIT.EMAILLABEL') }} *</label>
+                    <label>{{ t('USEREDIT.EMAILLABEL') }} *</label>
                     <br />
                     <input
+                      v-model="user.email"
                       type="email"
                       name="email"
-                      :placeholder="$t('USEREDIT.EMAILPLACEHOLDER')"
-                      v-model="user.email"
+                      :placeholder="t('USEREDIT.EMAILPLACEHOLDER')"
                     />
                   </div>
                   <div class="champ">
-                    <label>{{ $t('USEREDIT.QUESTIONLABEL') }} *</label>
+                    <label>{{ t('USEREDIT.QUESTIONLABEL') }} *</label>
                     <br />
                     <input
+                      v-model="user.question"
                       type="text"
                       name="question"
-                      :placeholder="$t('USEREDIT.QUESTIONPLACEHOLDER')"
-                      v-model="user.question"
-                      :pattern="patternQuestion"
+                      :placeholder="t('USEREDIT.QUESTIONPLACEHOLDER')"
+                      :pattern="patternQuestionString"
                     />
                   </div>
                   <div class="champ">
-                    <label>{{ $t('USEREDIT.RESPONSELABEL') }} *</label>
+                    <label>{{ t('USEREDIT.RESPONSELABEL') }} *</label>
                     <br />
                     <input
+                      v-model="user.reponse"
                       type="text"
                       name="reponse"
-                      :placeholder="$t('USEREDIT.RESPONSEPLACEHOLDER')"
-                      v-model="user.reponse"
-                      :pattern="patternReponse"
+                      :placeholder="t('USEREDIT.RESPONSEPLACEHOLDER')"
+                      :pattern="patternReponseString"
                     />
                   </div>
                   <br />
                   <input
                     type="submit"
                     name="submit"
-                    :value="$t('USEREDIT.SUBMITBUTTON')"
+                    :value="t('USEREDIT.SUBMITBUTTON')"
                     class="btn"
                   />
                 </form>
@@ -149,160 +134,154 @@
   </div>
 </template>
 
-<script>
-import LogoBlack from '../assets/logo_black.png';
-import LogoWhite from '../assets/logo_white.png';
+<script setup lang="ts">
+import { Ref, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { toast } from 'vue3-toastify';
+import { useRoute } from 'vue-router';
 
-export default {
-  name: 'Accueil',
-  metaInfo() {
-    const title = this.$t('USEREDIT.TITLE');
-    return {
-      title,
-    };
+import { useUserStore } from '@/stores/';
+import { User, UserId } from '@/types';
+import { getImage } from '@/utils';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const route = useRoute();
+
+useHead({
+  title: t('USEREDIT.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page d’accueil du site Groupomania',
+    },
+  ],
+});
+
+const patternNameString = ref(
+  '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}',
+);
+const patternFirstnameString = ref(
+  '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}',
+);
+const patternUsernameString = ref(
+  '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}',
+);
+const patternEmailString = ref('([\w-]+(?:\.[\w-]+)*)@groupomania\.fr');
+const patternQuestionString = ref(
+  '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"\'/ _-]{4,15}',
+);
+const patternReponseString = ref(
+  '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.`\'"/ _-]{4,15}',
+);
+const user: Ref<User> = ref({
+  id: 0,
+  name: '',
+  firstname: '',
+  username: '',
+  email: '',
+  password: '',
+  avatar: '',
+  maxSecurity: false,
+  rank: 3,
+  question: '',
+  reponse: '',
+  createdAt: '',
+  updatedAt: '',
+});
+const menuDisplayed: Ref<boolean> = ref(false);
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  data() {
-    return {
-      /* eslint-disable no-useless-escape */
-      patternName:
-        '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}',
-      patternFirstname:
-        '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}',
-      patternUsername:
-        '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}',
-      patternEmail: '([\w-]+(?:\.[\w-]+)*)@groupomania\.fr',
-      patternQuestion:
-        '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"\'/ _-]{4,15}',
-      patternReponse:
-        '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.`\'"/ _-]{4,15}',
-      /* eslint-enable no-useless-escape */
-      user: {},
-      menuDisplayed: false,
-    };
-  },
-  methods: {
-    updateImage(e) {
-      const data = new FormData();
-      data.append('avatar', e.target.files[0]);
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.UserId === 'number' ||
-        this.$route.params.UserId < 0
-      )
-        return false;
-      return fetch(
-        `http://localhost:3000/api/user/${this.$route.params.UserId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: data,
-        },
-      ).then(() => this.fetchUserProfile());
+})
+  .then((response) => response.json())
+  .then(({ user }) => {
+    userStore.saveConnectedUser(user);
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+onMounted(() => fetchUserProfile());
+
+function updateImage(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+
+  const data = new FormData();
+  data.append('avatar', file);
+  const token = userStore.token;
+  if (+route.params.UserId < 0) return false;
+  return fetch(`http://localhost:3000/api/user/${+route.params.UserId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-    submit() {
-      const regexName =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$/;
-      const regexFirstname =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$/;
-      const regexUsername =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}$/;
-      const regexEmail = /^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i;
-      const regexQuestion =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"'/ _-]{4,15}$/;
-      const regexReponse =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.'"/ _-]{4,15}$/;
-      const { name, firstname, username, email, question, reponse } = this.user;
-      if (
-        !regexName.test(name) ||
-        !regexFirstname.test(firstname) ||
-        !regexUsername.test(username) ||
-        !regexEmail.test(email) ||
-        !regexQuestion.test(question) ||
-        !regexReponse.test(reponse)
-      ) {
-        return false;
-      }
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.UserId === 'number' ||
-        this.$route.params.UserId < 0
-      )
-        return false;
-      return fetch(
-        `http://localhost:3000/api/user/${this.$route.params.UserId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            firstname,
-            username,
-            email,
-            question,
-            reponse,
-          }),
-        },
-      ).then(() => this.fetchUserProfile());
+    body: data,
+  }).then(() => fetchUserProfile());
+}
+
+function submit() {
+  const patternName = new RegExp(patternNameString.value);
+  const patternFirstname = new RegExp(patternFirstnameString.value);
+  const patternUsername = new RegExp(patternUsernameString.value);
+  const patternEmail = new RegExp(patternEmailString.value);
+  const patternQuestion = new RegExp(patternQuestionString.value);
+  const patternReponse = new RegExp(patternReponseString.value);
+  const { name, firstname, username, email, question, reponse } = user.value;
+  if (
+    !patternName.test(name) ||
+    !patternFirstname.test(firstname) ||
+    !patternUsername.test(username) ||
+    !patternEmail.test(email) ||
+    !patternQuestion.test(question) ||
+    !patternReponse.test(reponse)
+  ) {
+    return false;
+  }
+  const token = userStore.token;
+  if (+route.params.UserId < 0) return false;
+  return fetch(`http://localhost:3000/api/user/${+route.params.UserId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
-    fetchUserProfile() {
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.UserId === 'number' ||
-        this.$route.params.UserId < 0
-      )
-        return;
-      fetch(`http://localhost:3000/api/user/${this.$route.params.UserId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.user = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
+    body: JSON.stringify({
+      name,
+      firstname,
+      username,
+      email,
+      question,
+      reponse,
+    }),
+  }).then(() => fetchUserProfile());
+}
+function fetchUserProfile() {
+  const token = userStore.token;
+  if (+route.params.UserId < 0) return;
+  fetch(`http://localhost:3000/api/user/${+route.params.UserId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer: ${token}`,
-        'Content-Type': 'application/json',
-      },
+  })
+    .then((response) => response.json())
+    .then((data: UserId) => {
+      user.value = data;
     })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-  },
-  mounted() {
-    this.fetchUserProfile();
-  },
-};
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
 </script>
 
 <style scoped lang="scss">

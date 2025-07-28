@@ -1,25 +1,15 @@
 <template>
-  <div class="component-delete" @click="deleteAction">
+  <div class="component-delete" @click="() => EventBus.emit('deleteActionPressed', props.data)">
     <i class="fa fa-trash-o"></i>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
 
-export default {
-  props: {
-    data: {
-      type: Object,
-      required: true,
-    },
-  },
-  methods: {
-    deleteAction() {
-      EventBus.$emit('deleteActionPressed', this.data);
-    },
-  },
-};
+const props = defineProps<{
+  data: number;
+}>();
 </script>
 
 <style>

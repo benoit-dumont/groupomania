@@ -3,26 +3,19 @@
     <div class="content">
       <div class="sidebar">
         <div class="icons">
-          <img :src="this.getImage()" alt="Logo" />
+          <img :src="getImage()" alt="Logo" />
           <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"
-              ><i class="fas fa-home"></i
-            ></router-link>
+            <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
             <router-link
               :to="{
                 name: 'Profil',
-                params: { UserId: $store.state.connectedUser.id },
+                params: { UserId: userStore.connectedUser!.id },
               }"
               ><i class="fas fa-user"></i
             ></router-link>
-            <router-link :to="{ name: 'Settings' }"
-              ><i class="fas fa-cog"></i
-            ></router-link>
+            <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
             <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
               ><i class="fas fa-tools"></i
             ></router-link>
@@ -31,95 +24,75 @@
         <div class="box-posts">
           <div class="up">
             <div class="account">
-              <img
-                :src="$store.state.connectedUser.avatar"
-                :alt="$t('ALTIMAGEPROFILE')"
-              />
+              <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
               <i
-                @click="toggleLogout()"
-                v-if="this.menuDisplayed === false"
+                v-if="menuDisplayed === false"
                 class="fas fa-sort-down"
+                @click="() => (menuDisplayed = !menuDisplayed)"
               ></i>
-              <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+              <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
             </div>
             <transition name="logout">
-              <div class="logout" v-if="this.menuDisplayed === true">
-                <p @click="$store.dispatch('logout')">
-                  <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
+              <div v-if="menuDisplayed === true" class="logout">
+                <p @click="userStore.logout()">
+                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
                 </p>
               </div>
             </transition>
           </div>
           <div class="update">
-            <h1>{{ $t('POSTEDIT.TITLE') }}</h1>
+            <h1>{{ t('POSTEDIT.TITLE') }}</h1>
             <div class="update-container">
               <div class="media">
                 <label for="post-image" class="design">
                   <div class="message">
-                    <div
-                      class="post-image"
-                      v-if="post.media && isImage(post.media)"
-                    >
-                      <img :src="post.media" :alt="$t('ALTMEDIA')" />
+                    <div v-if="mediaUrl && isImage(mediaUrl)" class="post-image">
+                      <img :src="mediaUrl" :alt="t('ALTMEDIA')" />
                     </div>
-                    <div
-                      class="post-video"
-                      v-if="post.media && isVideo(post.media)"
-                    >
+                    <div v-if="mediaUrl && isVideo(mediaUrl)" class="post-video">
                       <video controls width="250">
-                        <source :src="post.media" type="video/mp4" />
+                        <source :src="mediaUrl" type="video/mp4" />
                       </video>
                     </div>
-                    <p>{{ $t('POSTEDIT.MEDIAOPACITYMESSAGE') }}</p>
+                    <p>{{ t('POSTEDIT.MEDIAOPACITYMESSAGE') }}</p>
                   </div>
-                  <input
-                    type="file"
-                    id="post-image"
-                    class="upload"
-                    @change="updateMedia"
-                  />
+                  <input id="post-image" type="file" class="upload" @change="updateMedia" />
                 </label>
               </div>
-              <div class="upload-image" v-if="post.media === null">
+              <div v-if="post.media === null" class="upload-image">
                 <label for="post-image" class="design"
-                  ><i class="fas fa-upload"></i>
-                  {{ $t('POSTEDIT.MEDIAUPLOAD') }}</label
+                  ><i class="fas fa-upload"></i> {{ t('POSTEDIT.MEDIAUPLOAD') }}</label
                 >
-                <input
-                  type="file"
-                  id="post-image"
-                  class="upload"
-                  @change="updateMedia"
-                />
+                <input id="post-image" type="file" class="upload" @change="updateMedia" />
               </div>
               <div class="update-form">
-                <form @submit.prevent="submit" class="form-post-edit">
+                <form class="form-post-edit" @submit.prevent="submit">
                   <div class="champ">
-                    <label>{{ $t('POSTEDIT.TITLELABEL') }} *</label>
+                    <label>{{ t('POSTEDIT.TITLELABEL') }} *</label>
                     <br />
                     <input
+                      v-model="post.title"
                       type="text"
                       name="title"
-                      :placeholder="$t('POSTEDIT.TITLEPLACEHOLDER')"
-                      v-model="post.title"
-                      :pattern="patternTitle"
+                      :placeholder="t('POSTEDIT.TITLEPLACEHOLDER')"
+                      :pattern="patternTitleString"
                     />
                   </div>
                   <div class="champ">
-                    <label>{{ $t('POSTEDIT.CONTENTLABEL') }} *</label>
+                    <label>{{ t('POSTEDIT.CONTENTLABEL') }} *</label>
                     <br />
                     <textarea
-                      name="content"
-                      :placeholder="$t('POSTEDIT.CONTENTPLACEHOLDER')"
                       v-model="post.content"
-                      :pattern="patternContent"
+                      name="content"
+                      :placeholder="t('POSTEDIT.CONTENTPLACEHOLDER')"
+                      :pattern="patternContentString"
                     ></textarea>
                   </div>
                   <br />
                   <input
                     type="submit"
                     name="submit"
-                    :value="$t('POSTEDIT.SUBMITBUTTON')"
+                    :value="t('POSTEDIT.SUBMITBUTTON')"
                     class="btn"
                   />
                 </form>
@@ -132,150 +105,184 @@
   </div>
 </template>
 
-<script>
-import LogoBlack from '../assets/logo_black.png';
-import LogoWhite from '../assets/logo_white.png';
+<script setup lang="ts">
+import { onMounted, Ref, ref, computed, watch, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { toast } from 'vue3-toastify';
+import { useRouter, useRoute } from 'vue-router';
 
-export default {
-  name: 'Accueil',
-  metaInfo() {
-    const title = this.$t('POSTEDIT.TITLE');
-    return {
-      title,
-    };
+import { getImage } from '@/utils';
+import { useUserStore } from '@/stores/';
+import { Post } from '@/types';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const router = useRoute();
+const route = useRoute();
+
+useHead({
+  title: t('POSTEDIT.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page de modification du post du site Groupomania',
+    },
+  ],
+});
+
+const patternTitleString = ref(
+  '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?\'"! _-]{2,15}',
+);
+const patternContentString = ref(
+  '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ\'"?!., _-]{4,255}',
+);
+const post: Ref<Post> = ref({
+  id: 0,
+  title: '',
+  content: '',
+  media: null,
+  createdAt: '',
+  updatedAt: '',
+  UserId: 0,
+  User: {
+    id: 0,
+    username: '',
+    avatar: '',
+    name: '',
+    firstname: '',
   },
-  data() {
-    return {
-      patternTitle:
-        '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?\'"! _-]{2,15}',
-      patternContent:
-        '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ\'"?!., _-]{4,255}',
-      post: {},
-      supportedExtensions: {
-        image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
-        video: ['mp4', 'avi'],
-      },
-      menuDisplayed: false,
-    };
+  Reactions: [],
+  Comments: [],
+});
+const supportedExtensions = ref({
+  image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
+  video: ['mp4', 'avi'],
+});
+const menuDisplayed: Ref<boolean> = ref(false);
+
+const token = userStore.token;
+fetch('http://localhost:3000/api/user/me', {
+  method: 'GET',
+  headers: {
+    Authorization: `Bearer: ${token}`,
+    'Content-Type': 'application/json',
   },
-  methods: {
-    fetchPostData() {
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.PostId === 'number' ||
-        this.$route.params.PostId < 0
-      )
-        return;
-      fetch(`http://localhost:3000/api/post/${this.$route.params.PostId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer: ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.post = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
+})
+  .then((response) => response.json())
+  .then((data) => {
+    userStore.saveConnectedUser(data.user);
+  })
+  .catch(() => {
+    return toast.error(t('ERROR.GENERAL'));
+  });
+
+onMounted(() => fetchPostData());
+
+function fetchPostData() {
+  const token = userStore.token;
+  if (+route.params.PostId < 0) return;
+  fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer: ${token}`,
+      'Content-Type': 'application/json',
     },
-    updateMedia(e) {
-      const data = new FormData();
-      data.append('media', e.target.files[0]);
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.PostId === 'number' ||
-        this.$route.params.PostId < 0
-      )
-        return;
-      fetch(`http://localhost:3000/api/post/${this.$route.params.PostId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: data,
-      }).then(() => this.fetchPostData());
-    },
-    submit() {
-      const regexTitle =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?'"! _-]{2,15}$/;
-      const regexContent =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
-      const { title, content } = this.post;
-      if (!regexTitle.test(title) || !regexContent.test(content)) {
-        return false;
-      }
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.PostId === 'number' ||
-        this.$route.params.PostId < 0
-      )
-        return false;
-      return fetch(
-        `http://localhost:3000/api/post/${this.$route.params.PostId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            content,
-          }),
-        },
-      ).then(() => this.fetchPostData());
-    },
-    isImage(media) {
-      if (
-        this.supportedExtensions.image.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    isVideo(media) {
-      if (
-        this.supportedExtensions.video.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer: ${token}`,
-        'Content-Type': 'application/json',
-      },
+  })
+    .then((response) => response.json())
+    .then((data: Post) => {
+      post.value = data;
     })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function updateMedia(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+
+  const data = new FormData();
+  data.append('media', file);
+  const token = userStore.token;
+  if (+route.params.PostId < 0) return;
+  fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: data,
+  }).then(() => fetchPostData());
+}
+
+function submit() {
+  const patternTitle = new RegExp(patternTitleString.value);
+  const patternContent = new RegExp(patternContentString.value);
+
+  if (!patternTitle.test(post.value.title) || !patternContent.test(post.value.content)) {
+    return false;
+  }
+  const token = userStore.token;
+  if (+route.params.PostId < 0) return false;
+  return fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: post.value.title,
+      content: post.value.content,
+    }),
+  }).then(() => fetchPostData());
+}
+
+function getExtension(media: Post['media']): string | null {
+  if (!media) return null;
+
+  if (typeof media === 'string') {
+    return media.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  if (media instanceof File) {
+    return media.name.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  return null;
+}
+
+function isImage(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.image.includes(ext);
+}
+
+function isVideo(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.video.includes(ext);
+}
+
+const mediaUrl = computed(() => {
+  if (!post.value.media) return '';
+  if (typeof post.value.media === 'string') return post.value.media;
+  return URL.createObjectURL(post.value.media);
+});
+
+let currentObjectUrl: string | null = null;
+watch(
+  () => post.value.media,
+  (newVal, oldVal) => {
+    if (currentObjectUrl) {
+      URL.revokeObjectURL(currentObjectUrl);
+      currentObjectUrl = null;
+    }
+    if (newVal instanceof File) {
+      currentObjectUrl = URL.createObjectURL(newVal);
+    }
   },
-  mounted() {
-    this.fetchPostData();
-  },
-};
+);
 </script>
 
 <style scoped lang="scss">
