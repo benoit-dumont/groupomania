@@ -104,19 +104,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
 
 import AvailableUpdate from '../components/AvailableUpdate.vue';
 
 import { useUserStore } from '@/stores/';
 import { Comment, Post, Reaction, User } from '@/types';
 import { getImage } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('DASHBOARDHOME.TITLE'),
@@ -134,27 +136,13 @@ const nbReactions = ref(0);
 const nbComments = ref(0);
 const menuDisplayed = ref(false);
 
-getPostsCount();
-getReactionsCount();
-getCommentsCount();
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    userStore.saveConnectedUser(data.user);
-    if (userStore.connectedUser!.rank !== 1) return false;
-    getUsersCount();
-    return true;
-  })
-  .catch(() => {
-    return toast.error(t('ERROR.GENERAL'));
-  });
+onMounted(async () => {
+  await getConnectedUser();
+  getUsersCount();
+  getPostsCount();
+  getReactionsCount();
+  getCommentsCount();
+});
 
 function getUsersCount() {
   const token = userStore.token;
@@ -228,22 +216,6 @@ function getCommentsCount() {
     });
 }
 </script>
-
-<!--
-
-  },
-  methods: {
-
-
-
-
-
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-};
-</script> -->
 
 <style scoped lang="scss">
 .content {

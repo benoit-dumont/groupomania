@@ -136,18 +136,20 @@ import { Ref, ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
 
 import deleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { formatDate, getImage } from '@/utils';
-import { Post, User, Comment, ReactionTypes, Reaction } from '@/types';
+import { useToast, useConnectedUser } from '@/composables';
+import { Post, Comment, ReactionTypes, Reaction } from '@/types';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const router = useRouter();
 const route = useRoute();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('POST.TITLE'),
@@ -184,21 +186,8 @@ const supportedExtensions = ref({
 });
 const menuDisplayed: Ref<boolean> = ref(false);
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then(({ user }) => userStore.saveConnectedUser(user))
-  .catch((error) => {
-    return toast.error(`An error occurred: ${error}`);
-  });
-
-onMounted(() => {
+onMounted(async () => {
+  await getConnectedUser();
   EventBus.on('deleteActionPressed', (_payload) => deleteResource);
   fetchPostData();
 });

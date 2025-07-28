@@ -76,16 +76,18 @@
 import { onMounted, Ref, ref } from 'vue';
 import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
-import { toast } from 'vue3-toastify';
 import { useRoute } from 'vue-router';
 
 import { useUserStore } from '@/stores/';
 import { getImage } from '@/utils';
 import { CommentId } from '@/types';
+import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const route = useRoute();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('COMMENTEDIT.TITLE'),
@@ -110,23 +112,8 @@ const comment = ref<CommentId>({
 });
 const menuDisplayed: Ref<boolean> = ref(false);
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    userStore.saveConnectedUser(data.user);
-  })
-  .catch(() => {
-    return toast.error(t('ERROR.GENERAL'));
-  });
-
-onMounted(() => {
+onMounted(async () => {
+  await getConnectedUser();
   fetchCommentData();
 });
 

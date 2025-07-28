@@ -83,7 +83,6 @@ import { Ref, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
 
 import modifyActionAdmin from '../components/ModifyAction.vue';
 import deleteActionAdmin from '../components/DeleteAction.vue';
@@ -91,11 +90,14 @@ import deleteActionAdmin from '../components/DeleteAction.vue';
 import { useUserStore } from '@/stores/';
 import { User } from '@/types';
 import { formatDate, getImage } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
 import type { Header } from 'vue3-easy-data-table';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const router = useRouter();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('DASHBOARDUSER.TITLE'),
@@ -158,7 +160,8 @@ const columns: Header[] = [
   },
 ];
 
-onMounted(() => {
+onMounted(async () => {
+  await getConnectedUser();
   EventBus.on('modifyActionPressed', (_payload) => modifyUser);
   EventBus.on('deleteActionPressed', (_payload) => deleteUser);
   getUsers();

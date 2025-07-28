@@ -71,7 +71,7 @@
             :pagination="true"
             :per-page="5"
           >
-            <template #delete="{ row }">
+            <template #revoke="{ row }">
               <deleteAction :data="row.id" />
             </template>
           </EasyDataTable>
@@ -86,7 +86,6 @@ import EventBus from '../EventBus';
 import { computed, onMounted, Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
 
 import DeleteAction from '../components/DeleteAction.vue';
 
@@ -94,9 +93,12 @@ import type { Header } from 'vue3-easy-data-table';
 import { useUserStore } from '@/stores/';
 import { Token } from '@/types';
 import { formatDate, getImage } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('DASHBOARDTOKEN.TITLE'),
@@ -138,23 +140,8 @@ const headers: Header[] = [
 ];
 const menuDisplayed: Ref<boolean> = ref(false);
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    userStore.saveConnectedUser(data.user);
-  })
-  .catch(() => {
-    return toast.error(t('ERROR.GENERAL'));
-  });
-
-onMounted(() => {
+onMounted(async () => {
+  await getConnectedUser();
   EventBus.on('deleteActionPressed', (_payload) => revokeToken);
   getTokens();
 });

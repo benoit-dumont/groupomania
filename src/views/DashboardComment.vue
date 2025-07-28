@@ -112,17 +112,18 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
-import { toast } from 'vue3-toastify';
-
 import DeleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Comment } from '@/types';
 import { formatDate, getImage } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const router = useRouter();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('DASHBOARDCOMMENT.TITLE'),
@@ -137,23 +138,8 @@ useHead({
 const comments: Ref<Comment[]> = ref([]);
 const menuDisplayed: Ref<boolean> = ref(false);
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    userStore.saveConnectedUser(data.user);
-  })
-  .catch(() => {
-    return toast.error(t('ERROR.GENERAL'));
-  });
-
-onMounted(() => {
+onMounted(async () => {
+  await getConnectedUser();
   EventBus.on('deleteActionPressed', (_payload) => deleteComment);
   getComments();
 });

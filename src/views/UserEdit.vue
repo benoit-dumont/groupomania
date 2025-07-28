@@ -138,16 +138,18 @@
 import { Ref, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
 import { useRoute } from 'vue-router';
 
 import { useUserStore } from '@/stores/';
 import { User, UserId } from '@/types';
 import { getImage } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const route = useRoute();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('USEREDIT.TITLE'),
@@ -192,23 +194,10 @@ const user: Ref<User> = ref({
 });
 const menuDisplayed: Ref<boolean> = ref(false);
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then(({ user }) => {
-    userStore.saveConnectedUser(user);
-  })
-  .catch(() => {
-    return toast.error(t('ERROR.GENERAL'));
-  });
-
-onMounted(() => fetchUserProfile());
+onMounted(async () => {
+  await getConnectedUser();
+  fetchUserProfile();
+});
 
 function updateImage(e: Event) {
   const input = e.target as HTMLInputElement;

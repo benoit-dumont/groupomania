@@ -12,7 +12,7 @@
             type="text"
             name="nom"
             :placeholder="t('SIGNUP.NAMEPLACEHOLDER')"
-            :pattern="patternName"
+            :pattern="patternNameString"
           />
         </div>
         <div class="champ">
@@ -23,7 +23,7 @@
             type="text"
             name="prenom"
             :placeholder="t('SIGNUP.FIRSTNAMEPLACEHOLDER')"
-            :pattern="patternFirstname"
+            :pattern="patternFirstnameString"
           />
         </div>
         <div class="champ">
@@ -34,7 +34,7 @@
             type="text"
             name="username"
             :placeholder="t('SIGNUP.USERNAMEPLACEHOLDER')"
-            :pattern="patternUsername"
+            :pattern="patternUsernameString"
           />
         </div>
         <div class="champ">
@@ -45,7 +45,7 @@
             type="email"
             name="email"
             :placeholder="t('SIGNUP.EMAILPLACEHOLDER')"
-            :pattern="patternEmail"
+            :pattern="patternEmailString"
           />
         </div>
         <div class="champ">
@@ -56,7 +56,7 @@
             type="text"
             name="password"
             :placeholder="t('SIGNUP.PASSWORDPLACEHOLDER')"
-            :pattern="patternPassword"
+            :pattern="patternPasswordString"
           />
         </div>
         <div class="champ">
@@ -78,7 +78,7 @@
             type="text"
             name="question"
             :placeholder="t('SIGNUP.QUESTIONPLACEHOLDER')"
-            :pattern="patternQuestion"
+            :pattern="patternQuestionString"
           />
         </div>
         <div class="champ">
@@ -89,7 +89,7 @@
             type="text"
             name="reponse"
             :placeholder="t('SIGNUP.RESPONSEPLACEHOLDER')"
-            :pattern="patternReponse"
+            :pattern="patternReponseString"
           />
         </div>
         <br />
@@ -115,14 +115,14 @@ import { Ref, ref } from 'vue';
 import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { toast } from 'vue3-toastify';
 
 import { getImage } from '@/utils';
+import { useToast } from '@/composables';
+import { User } from '@/types';
 
 const { t } = useI18n();
-import { Post } from '@/types';
-
 const router = useRouter();
+const toast = useToast();
 
 useHead({
   title: t('SIGNUP.TITLE'),
@@ -134,49 +134,43 @@ useHead({
   ],
 });
 
-const patternName = ref(
+const patternNameString = ref(
   '^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$',
 );
-const patternFirstname = ref(
+const patternFirstnameString = ref(
   '^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$',
 );
-const patternUsername = ref(
+const patternUsernameString = ref(
   '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}$',
 );
-const patternEmail = ref('^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i');
-const patternPassword = ref('^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$');
-const patternQuestion = ref(
+const patternEmailString = ref('^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i');
+const patternPasswordString = ref('^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$');
+const patternQuestionString = ref(
   '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"\'/ _-]{4,15}$',
 );
-const patternReponse = ref(
+const patternReponseString = ref(
   '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.`\'"/ _-]{4,15}$',
 );
 
-const name = ref('');
-const firstname = ref('');
-const username = ref('');
-const email = ref('');
-const avatar: Ref<Post['media']> = ref('');
-const password = ref('');
-const question = ref('');
-const reponse = ref('');
+const name: Ref<User['name']> = ref('');
+const firstname: Ref<User['firstname']> = ref('');
+const username: Ref<User['username']> = ref('');
+const email: Ref<User['email']> = ref('');
+const avatar = ref<File | null>(null);
+const password: Ref<User['password']> = ref('');
+const question: Ref<User['question']> = ref('');
+const reponse: Ref<User['reponse']> = ref('');
 
 function submit() {
-  const regexName =
-    /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$/;
-  const regexFirstname =
-    /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$/;
-  const regexUsername =
-    /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}$/;
-  const regexEmail = /^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i;
-  const regexPassword = /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$/;
-  const regexQuestion =
-    /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"'/ _-]{4,15}$/;
-  const regexReponse =
-    /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.'"/ _-]{4,15}$/;
-  if (name.value.length === 0) {
-    return toast.error(t('NAME.INPUT'));
-  }
+  const patternName = RegExp(patternNameString.value);
+  const patternFirstname = RegExp(patternFirstnameString.value);
+  const patternUsername = RegExp(patternUsernameString.value);
+  const patternEmail = RegExp(patternEmailString.value);
+  const patternPassword = RegExp(patternPasswordString.value);
+  const patternQuestion = RegExp(patternQuestionString.value);
+  const patternReponse = RegExp(patternReponseString.value);
+
+  if (name.value.length === 0) return toast.error(t('NAME.INPUT'));
   if (firstname.value.length === 0) return toast.error(t('FIRSTNAME.INPUT'));
   if (username.value.length === 0) return toast.error(t('USERNAME.INPUT'));
   if (email.value.length === 0) return toast.error(t('EMAIL.INPUT'));
@@ -184,15 +178,15 @@ function submit() {
   if (question.value.length === 0) return toast.error(t('QUESTION.INPUT'));
   if (reponse.value.length === 0) return toast.error(t('REPONSE.INPUT'));
 
-  if (!regexName.test(name.value)) return toast.error(t('NAME.FORMAT'));
-  if (!regexFirstname.test(firstname.value)) return toast.error(t('FIRSTNAME.FORMAT'));
-  if (!regexUsername.test(username.value)) return toast.error(t('USERNAME.FORMAT'));
-  if (!regexEmail.test(email.value)) return toast.error(t('EMAIL.FORMAT'));
-  if (!regexPassword.test(password.value)) return toast.error(t('PASSWORD.FORMAT'));
-  if (!regexQuestion.test(question.value)) return toast.error(t('QUESTION.FORMAT'));
-  if (!regexReponse.test(reponse.value)) return toast.error(t('REPONSE.FORMAT'));
+  if (!patternName.test(name.value)) return toast.error(t('NAME.FORMAT'));
+  if (!patternFirstname.test(firstname.value)) return toast.error(t('FIRSTNAME.FORMAT'));
+  if (!patternUsername.test(username.value)) return toast.error(t('USERNAME.FORMAT'));
+  if (!patternEmail.test(email.value)) return toast.error(t('EMAIL.FORMAT'));
+  if (!patternPassword.test(password.value)) return toast.error(t('PASSWORD.FORMAT'));
+  if (!patternQuestion.test(question.value)) return toast.error(t('QUESTION.FORMAT'));
+  if (!patternReponse.test(reponse.value)) return toast.error(t('REPONSE.FORMAT'));
 
-  if (avatar) {
+  if (avatar.value) {
     const data = new FormData();
     data.append('name', name.value);
     data.append('firstname', firstname.value);
@@ -245,8 +239,7 @@ function submit() {
 function tempStoreImage(e: Event) {
   const input = e.target as HTMLInputElement;
   if (input.files && input.files.length > 0) {
-    const file = input.files[0];
-    avatar.value = file;
+    avatar.value = input.files[0];
   }
 }
 </script>

@@ -34,20 +34,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useHead } from '@vueuse/head';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { toast } from 'vue3-toastify';
 
 import { useUserStore } from '@/stores/';
-const userStore = useUserStore();
-
-const { t } = useI18n();
-const router = useRouter();
-
 import { getImage } from '@/utils';
 import { Token } from '@/types';
+import { useToast } from '@/composables';
+
+const userStore = useUserStore();
+const { t } = useI18n();
+const router = useRouter();
+const toast = useToast();
 
 useHead({
   title: t('LOGIN.TITLE'),

@@ -109,17 +109,18 @@
 import { onMounted, Ref, ref, computed, watch, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
-import { useRouter, useRoute } from 'vue-router';
+import { useRoute } from 'vue-router';
 
 import { getImage } from '@/utils';
 import { useUserStore } from '@/stores/';
 import { Post } from '@/types';
+import { useToast, useConnectedUser } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
-const router = useRoute();
 const route = useRoute();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('POSTEDIT.TITLE'),
@@ -161,23 +162,10 @@ const supportedExtensions = ref({
 });
 const menuDisplayed: Ref<boolean> = ref(false);
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then((data) => {
-    userStore.saveConnectedUser(data.user);
-  })
-  .catch(() => {
-    return toast.error(t('ERROR.GENERAL'));
-  });
-
-onMounted(() => fetchPostData());
+onMounted(async () => {
+  await getConnectedUser();
+  fetchPostData();
+});
 
 function fetchPostData() {
   const token = userStore.token;

@@ -171,17 +171,19 @@ import { ref, onMounted, Ref, computed, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
-import { toast } from 'vue3-toastify';
 
 import DeleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Post } from '@/types';
 import { formatDate, getImage } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const router = useRouter();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('ACCUEIL.TITLE'),
@@ -204,25 +206,8 @@ const supportedExtensions = ref({
 const menuDisplayed: Ref<boolean> = ref(false);
 const comContent = ref('');
 
-const token = userStore.token;
-fetch('http://localhost:3000/api/user/me', {
-  method: 'GET',
-  headers: {
-    Authorization: `Bearer: ${token}`,
-    'Content-Type': 'application/json',
-  },
-})
-  .then((response) => response.json())
-  .then(({ user }) => {
-    userStore.saveConnectedUser(user);
-  })
-  .catch(() => {
-    return toast.success(t('ERROR.GENERAL'), {
-      position: toast.POSITION.BOTTOM_RIGHT,
-    });
-  });
-
-onMounted(() => {
+onMounted(async () => {
+  await getConnectedUser();
   EventBus.on('deleteActionPressed', (_payload) => deletePost);
   fetchPosts();
 });
@@ -239,17 +224,13 @@ function fetchPosts() {
     .then((response) => response.json())
     .then((data) => (posts.value = data))
     .catch(() => {
-      return toast.error(t('ERROR.GENERAL'), {
-        position: toast.POSITION.BOTTOM_RIGHT,
-      });
+      return toast.error(t('ERROR.GENERAL'));
     });
 }
 
 function submit() {
   if (title.value.length === 0) {
-    return toast.error(t('TITLE.INPUT'), {
-      position: toast.POSITION.BOTTOM_RIGHT,
-    });
+    return toast.error(t('TITLE.INPUT'));
   }
   if (contentPost.value.length === 0) {
     return toast.error(t('CONTENT.INPUT'));

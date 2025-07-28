@@ -9,13 +9,13 @@
             <router-link
               :to="{
                 name: 'Profil',
-                params: { UserId: $store.state.connectedUser.id },
+                params: { UserId: userStore.connectedUser!.id },
               }"
               ><i class="fas fa-user"></i
             ></router-link>
             <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
             <router-link
-              v-if="$store.state.connectedUser.rank === 1 || $store.state.connectedUser.rank === 2"
+              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
               :to="{ name: 'Home Dashboard' }"
               ><i class="fas fa-tools"></i
             ></router-link>
@@ -24,64 +24,59 @@
         <div class="box-posts">
           <div class="up">
             <div class="account">
-              <img :src="$store.state.connectedUser.avatar" :alt="t('ALTIMAGEPROFILE')" />
+              <img :src="userStore.connectedUser!.avatar" :alt="$t('ALTIMAGEPROFILE')" />
               <i
                 v-if="menuDisplayed === false"
                 class="fas fa-sort-down"
-                @click="toggleLogout()"
+                @@click="() => (menuDisplayed = !menuDisplayed)"
               ></i>
-              <i v-else class="fas fa-sort-up" @click="toggleLogout()"></i>
+              <i v-else class="fas fa-sort-up" @@click="() => (menuDisplayed = !menuDisplayed)"></i>
             </div>
             <transition name="logout">
               <div v-if="menuDisplayed === true" class="logout">
-                <p @click="$store.dispatch('logout')">
-                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
+                <p @click="userStore.logout()">
+                  <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
                 </p>
               </div>
             </transition>
           </div>
           <div class="settings">
-            <h1>{{ t('SETTINGS.TITLE') }}</h1>
+            <h1>{{ $t('SETTINGS.TITLE') }}</h1>
             <div class="lang">
               <div class="text">
-                <h2>{{ t('SETTINGS.LANGTITLE') }}</h2>
-                <p>{{ t('SETTINGS.LANGDESC') }}</p>
+                <h2>{{ $t('SETTINGS.LANGTITLE') }}</h2>
+                <p>{{ $t('SETTINGS.LANGDESC') }}</p>
               </div>
               <div class="params">
-                <multiselect
+                <Multiselect
                   v-model="valueLang"
-                  :placeholder="t('SETTINGS.LANGOPTIONPLACEHOLDER')"
+                  :placeholder="$t('SETTINGS.LANGOPTIONPLACEHOLDER')"
                   label="lang"
                   track-by="lang"
                   :options="[
-                    {
-                      flag: 'fi-fr',
-                      lang: 'Français',
-                    },
-                    {
-                      flag: 'fi-us',
-                      lang: 'English',
-                    },
+                    { flag: 'fi-fr', lang: 'Français' },
+                    { flag: 'fi-us', lang: 'English' },
                   ]"
                   :option-height="2"
                   :show-labels="false"
                   @input="switchLanguage"
                 >
-                  <template slot="singleLabel" slot-scope="props">
-                    <span class="fi" :class="props.option.flag"></span>
-                    - <span class="colored">{{ props.option.lang }}</span>
+                  <template #singleLabel="{ option }">
+                    <span class="fi" :class="option.flag"></span>
+                    - <span class="colored">{{ option.lang }}</span>
                   </template>
-                  <template slot="option" slot-scope="props">
-                    <span class="fi" :class="props.option.flag"></span>
-                    - <span class="colored">{{ props.option.lang }}</span>
+
+                  <template #option="{ option }">
+                    <span class="fi" :class="option.flag"></span>
+                    - <span class="colored">{{ option.lang }}</span>
                   </template>
-                </multiselect>
+                </Multiselect>
               </div>
             </div>
             <div class="mode">
               <div class="text">
-                <h2>{{ t('SETTINGS.THEMETITLE') }}</h2>
-                <p>{{ t('SETTINGS.THEMEDESC') }}</p>
+                <h2>{{ $t('SETTINGS.THEMETITLE') }}</h2>
+                <p>{{ $t('SETTINGS.THEMEDESC') }}</p>
               </div>
               <div class="colors">
                 <input id="mod" v-model="darkMode" type="checkbox" class="colors" /><label
@@ -93,31 +88,41 @@
             </div>
             <div class="security">
               <div class="text">
-                <h2>{{ t('SETTINGS.SECURITYTITLE') }}</h2>
-                <p>{{ t('SETTINGS.SECURITYDESC') }}</p>
+                <h2>{{ $t('SETTINGS.SECURITYTITLE') }}</h2>
+                <p>{{ $t('SETTINGS.SECURITYDESC') }}</p>
               </div>
               <div class="params">
                 <input
                   id="security"
-                  v-model="$store.state.connectedUser.maxSecurity"
+                  v-model="userStore.connectedUser!.maxSecurity"
                   type="checkbox"
                   @change="toggleMaxSecurity"
                 /><label for="security">Toggle</label>
               </div>
             </div>
             <div class="history">
-              <p v-if="tokenListDisplayed === false" @click="toggleTokenList()">
-                {{ t('SETTINGS.HISTORYTITLE') }}
+              <p
+                v-if="tokenListDisplayed === false"
+                @click="() => (tokenListDisplayed = !tokenListDisplayed)"
+              >
+                {{ $t('SETTINGS.HISTORYTITLE') }}
               </p>
               <div v-if="tokenListDisplayed === true" class="history-token">
-                <i class="fas fa-window-close" @click="toggleTokenList()"></i>
-                <data-table :columns="columns" :data="tokenReturned" />
+                <i
+                  class="fas fa-window-close"
+                  @click="() => (tokenListDisplayed = !tokenListDisplayed)"
+                ></i>
+                <EasyDataTable :headers="headers" :data="tokenReturned">
+                  <template #token="{ row }">
+                    <div class="token-style">{{ row.token }}</div>
+                  </template>
+                </EasyDataTable>
               </div>
             </div>
             <div class="action">
               <div class="supprimer" @click="deleteUser()">
                 <p>
-                  {{ t('SETTINGS.DELETEACCOUNT') }}
+                  {{ $t('SETTINGS.DELETEACCOUNT') }}
                 </p>
               </div>
             </div>
@@ -128,149 +133,149 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">
+import { computed, onMounted, Ref, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import Multiselect from 'vue-multiselect';
-import LogoWhite from '../assets/logo_white.png';
-import LogoBlack from '../assets/logo_black.png';
+import { useHead } from '@vueuse/head';
 
-const store = useStore();
-const router = useRouter();
+import { Token } from '@/types';
+import { formatDate, getImage } from '@/utils';
+import { useToast, useConnectedUser } from '@/composables';
+import { useUserStore } from '@/stores';
+import { useRouter } from 'vue-router';
+import { Header } from 'vue3-easy-data-table';
+
 const { t, locale } = useI18n();
+const router = useRouter();
+const toast = useToast();
+const userStore = useUserStore();
+const getConnectedUser = useConnectedUser();
+
+useHead({
+  title: t('SETTINGS.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page des paramètres du site Groupomania',
+    },
+  ],
+});
 
 const valueLang = ref({
   flag: localStorage.getItem('lang') === 'English' ? 'fi-us' : 'fi-fr',
   lang: localStorage.getItem('lang') || 'Français',
 });
 
-const darkMode = ref(true);
-const menuDisplayed = ref(false);
-tokenListDisplayed = ref(false);
+const darkMode: Ref<boolean> = ref(true);
+const menuDisplayed: Ref<boolean> = ref(false);
+const tokenListDisplayed: Ref<boolean> = ref(false);
+const tokens: Ref<Token[]> = ref([]);
+const headers: Header[] = [
+  {
+    value: 'createdAt',
+    text: t('DATATABLE.CREATEDAT'),
+  },
+  {
+    value: 'token',
+    text: t('DATATABLE.TOKEN'),
+  },
+  {
+    value: 'userAgent',
+    text: 'User Agent',
+  },
+  {
+    value: 'ipAddress',
+    text: t('DATATABLE.IPADDRESS'),
+  },
+];
 
-const tokens = ref([]);
-const token = computed(() => store.state.token.token);
+onMounted(async () => {
+  await getConnectedUser();
+  getTokens();
+});
 
-const switchLanguage = () => {
+const tokenReturned = computed(() => {
+  return tokens.value.map((token) => ({
+    ...token,
+    createdAt: formatDate(token.createdAt),
+  }));
+});
+
+watch(
+  darkMode,
+  (value) => {
+    const htmlElement = document.documentElement;
+    localStorage.setItem('theme', value ? 'dark' : 'light');
+    htmlElement.setAttribute('theme', value ? 'dark' : 'light');
+  },
+  { immediate: true },
+);
+
+function switchLanguage() {
   if (!valueLang.value) return;
   localStorage.setItem('lang', valueLang.value.lang);
   locale.value = valueLang.value.lang === 'Français' ? 'fr' : 'en';
-};
+}
 
-const getImage = () => {
-  const theme = localStorage.getItem('theme');
-  return theme === 'light' ? LogoBlack : LogoWhite;
-};
-
-const toggleLogout = () => {
-  menuDisplayed.value = !menuDisplayed.value;
-};
-
-const toggleTokenList = () => {
-  tokenListDisplayed.value = !tokenListDisplayed.value;
-};
-
-const toggleMaxSecurity = async () => {
-  const userId = store.state.connectedUser.id;
-  if (typeof userId !== 'number' || userId < 1) return;
-  try {
-    await fetch(`http://localhost:3000/api/user/${userId}`, {
-      method: 'PATCH',
-      headers: {
-        Authorization: `Bearer: ${token.value}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ maxSecurity: store.state.connectedUser.maxSecurity }),
-    });
-    $vToastify.success(t('USER.SUCCESS'));
-  } catch {
-    $vToastify.error(t('ERROR.GENERAL'));
-  }
-};
-
-const getTokens = async () => {
-  try {
-    const res = await fetch(
-      `http://localhost:3000/api/token/user/${store.state.connectedUser.id}`,
-      {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer:' ${token.value}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
-    const data = await res.json();
-    tokens.value = data;
-  } catch {
-    $vToastify.error(t('ERROR.GENERAL'));
-  }
-};
-
-const deleteUser = async () => {
-  try {
-    await fetch(`http://localhost:3000/api/user/${store.state.connectedUser.id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer:' ${token.value}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    router.push({ name: 'Login' });
-  } catch {
-    $vToastify.error(t('ERROR.GENERAL'));
-  }
-};
-
-const columns = computed(() => [
-  { key: 'createdAt', title: t('DATATABLE.CREATEDAT'), type: 'string' },
-  {
-    key: 'token',
-    title: t('DATATABLE.TOKEN'),
-    component: {
-      props: ['data'],
-      render(createElement) {
-        return createElement('div', { class: 'token-style' }, this.data.token);
-      },
+function toggleMaxSecurity() {
+  const token = userStore.token;
+  if (+userStore.connectedUser!.id < 1) return;
+  fetch(`http://localhost:3000/api/user/${userStore.connectedUser!.id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer: ${token}`,
+      'Content-Type': 'application/json',
     },
-  },
-  { key: 'userAgent', title: 'User Agent', type: 'string' },
-  { key: 'ipAddress', title: t('DATATABLE.IPADDRESS'), type: 'string' },
-]);
-
-const tokenReturned = computed(() => {
-  return (
-    tokens.value?.map((token) => ({
-      ...token,
-      createdAt: formatDate(token.createdAt),
-    })) || []
-  );
-});
-
-watch(darkMode, (val) => {
-  const htmlElement = document.documentElement;
-  localStorage.setItem('theme', val ? 'dark' : 'light');
-  htmlElement.setAttribute('theme', val ? 'dark' : 'light');
-});
-
-onMounted(async () => {
-  try {
-    const res = await fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer: ${token.value}`,
-        'Content-Type': 'application/json',
-      },
+    body: JSON.stringify({
+      maxSecurity: userStore.connectedUser!.maxSecurity,
+    }),
+  })
+    .then((response) => response.json())
+    .then(() => {
+      return toast.success(t('USER.SUCCESS'));
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
     });
-    const data = await res.json();
-    store.dispatch('saveConnectedUser', data.user);
-    await getTokens();
-  } catch {
-    $vToastify.error(t('ERROR.GENERAL'));
-  }
-});
+}
+
+function getTokens() {
+  const token = userStore.token;
+  fetch(`http://localhost:3000/api/token/user/${userStore.connectedUser!.id}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      tokens.value = data;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function deleteUser() {
+  const token = userStore.token;
+  fetch(`http://localhost:3000/api/user/${userStore.connectedUser!.id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then(() => {
+      router.push({
+        name: 'Login',
+      });
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
 </script>
 
 <style scoped lang="scss">
