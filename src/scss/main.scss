@@ -1,5 +1,4 @@
 @import '~flag-icons/css/flag-icons.min.css';
-@import '~vue-multiselect/dist/vue-multiselect.min.css';
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import '@andresouzaabreu/vue-data-table/dist/DataTable.css';
 
@@ -44,101 +43,11 @@
   --app-border-color: #22262b;
   --app-action-icons-color: #22262b;
   --app-input-background-color: #e3e3e3;
-  --app-input-placeholder-color: a6a6a6;
+  --app-input-placeholder-color: #a6a6a6;
   --app-table-button-color: #fff;
   --app-major-update-color: #b50000;
   --app-minor-update-color: #aa2e00;
   --app-patch-update-color: #050;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__tags {
-  border: 1px solid var(--app-text-primary-color);
-  background: var(--app-background-color) !important;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__single {
-  background: var(--app-background-color) !important;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__select {
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__tags span img {
-  width: 16px;
-  height: 16px;
-  border: 1px solid black;
-  border-radius: 50%;
-  vertical-align: middle;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__element span img {
-  width: 16px;
-  height: 16px;
-  border: 1px solid black;
-  border-radius: 50%;
-  vertical-align: middle;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__input {
-  background: var(--app-background-color) !important;
-  color: #adadad;
-}
-
-.multiselect ::placeholder {
-  color: #adadad;
-}
-
-/* stylelint-disable-next-line selector-class-pattern */
-.multiselect__option {
-  background: var(--app-background-color) !important;
-}
-
-.data-table {
-  padding: 2vh 4vh;
-}
-
-.data-table-per-page span {
-  color: var(--app-text-primary-color);
-}
-
-.data-table-pagination .pagination {
-  overflow: initial;
-}
-
-.data-table-search-filter span {
-  color: var(--app-text-primary-color);
-}
-
-.data-table-info {
-  color: var(--app-text-primary-color);
-}
-
-.pagination-search {
-  color: var(--app-text-primary-color);
-}
-
-.data-table-export-data span {
-  color: var(--app-text-primary-color);
-}
-
-.table-striped > tbody > tr:nth-of-type(2n + 1) > * {
-  color: var(--app-text-primary-color);
-}
-
-.table > :not(:first-child) {
-  color: var(--app-text-primary-color);
-}
-
-.table-hover > tbody > tr:hover > * {
-  color: var(--app-text-primary-color);
 }
 
 .page-link {
@@ -169,26 +78,12 @@
   color: var(--app-text-primary-color);
 }
 
-.data-table-sorting-icons {
-  position: relative;
-  padding-right: 20px;
-}
-
-.data-table-sorting-index {
-  position: absolute;
-  right: 5px;
-}
-
-.data-table-table .column.sortable:hover {
-  color: #22262b;
-}
-
 .token-style {
   word-wrap: break-word;
   max-width: 600px;
 }
 
-@media (max-width: 700px) {
+@media (width <= 700px) {
   .token-style {
     width: 100%;
   }
@@ -216,41 +111,6 @@
   tbody {
     display: block;
     width: 100%;
-  }
-
-  .data-table-search-filter {
-    display: initial;
-    width: 100%;
-    padding: 2vh;
-  }
-
-  .data-table-info {
-    text-align: center;
-  }
-
-  .data-table-search-filter input {
-    margin: 0;
-    width: 100%;
-  }
-
-  .data-table-pagination .pagination-search {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .data-table-pagination {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .data-table-export-data {
-    width: 100%;
-    flex-direction: column;
-  }
-
-  .data-table-per-page {
-    width: 100%;
-    justify-content: center;
   }
 
   .btn-primary {
