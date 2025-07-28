@@ -1,19 +1,29 @@
-// vite.config.ts
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import vueI18n from '@intlify/unplugin-vue-i18n/vite';
+import path from 'path';
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    vueI18n({
+      include: path.resolve(__dirname, './src/I18n/locales/**'),
+    }),
+  ],
   resolve: {
     alias: {
-      '@': '/src',
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "@/styles/variables.scss" as *;`,
+      },
     },
   },
   server: {
-    port: 3000,
-  },
-  esbuild: {
-    jsxFactory: undefined,      // désactive JSX
-    jsxFragment: undefined,     // désactive JSX
+    port: 5173,
+    open: true,
   },
 });
