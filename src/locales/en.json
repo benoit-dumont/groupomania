@@ -101,7 +101,7 @@
     "SWITCHLOGINREGISTER": "Sign up",
     "TITLE": "Login",
     "USERNAMEEMAILLABEL": "Email / Username",
-    "USERNAMEEMAILPLACEHOLDER": "example@groupomania.fr"
+    "USERNAMEEMAILPLACEHOLDER": "{email}"
   },
   "LOGOUT": "Logout",
   "NAME": {
@@ -169,7 +169,7 @@
     "AVATARLABEL": "Avatar",
     "AVATARSUBMIT": "Upload a image",
     "EMAILLABEL": "Email",
-    "EMAILPLACEHOLDER": "example@domain.fr",
+    "EMAILPLACEHOLDER": "{email}",
     "FIRSTNAMELABEL": "Firstname",
     "FIRSTNAMEPLACEHOLDER": "example: Doe",
     "NAMELABEL": "Name",
@@ -203,7 +203,7 @@
   },
   "USEREDIT": {
     "EMAILLABEL": "Email",
-    "EMAILPLACEHOLDER": "example@domain.fr",
+    "EMAILPLACEHOLDER": "{email}",
     "FIRSTNAMELABEL": "Firstname",
     "FIRSTNAMEPLACEHOLDER": "example: Doe",
     "IMGOPACITYMESSAGE": "Modify",

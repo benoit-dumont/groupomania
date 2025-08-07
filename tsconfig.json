@@ -15,6 +15,6 @@
     },
     "types": ["vite/client", "pinia-plugin-persistedstate"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.js", "types"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.js", "src/types"],
   "exclude": ["node_modules"]
 }

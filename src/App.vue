@@ -1,14 +1,26 @@
 <template>
-  <RouterView />
+  <component :is="layoutComponent">
+    <RouterView />
+  </component>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 onMounted(() => {
   const htmlElement = document.documentElement;
   const theme = localStorage.getItem('theme') || 'dark';
   htmlElement.setAttribute('theme', theme);
+});
+
+import { layouts, type LayoutName } from '@/layouts';
+
+const layoutComponent = computed(() => {
+  const layoutName = route.meta.layout as LayoutName | undefined;
+  return (layoutName && layouts[layoutName]) || layouts.DefaultLayout;
 });
 </script>
 

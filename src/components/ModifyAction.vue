@@ -8,7 +8,7 @@
 import EventBus from '../EventBus';
 
 const props = defineProps<{
-  data: Object;
+  data: number;
 }>();
 </script>
 
@@ -16,6 +16,7 @@ const props = defineProps<{
 .component-modify {
   width: fit-content;
   transition: all 450ms ease-in-out;
+  cursor: pointer;
 }
 
 .component-modify :hover {

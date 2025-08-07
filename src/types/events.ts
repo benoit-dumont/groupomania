@@ -1,4 +1,4 @@
 export type Events = {
-  deleteActionPressed: Object;
-  modifyActionPressed: Object;
+  deleteActionPressed: number;
+  modifyActionPressed: number;
 };

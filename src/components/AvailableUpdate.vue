@@ -55,12 +55,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 import { useUserStore } from '@/stores';
 import { useToast } from '@/composables';
+import { useI18n } from 'vue-i18n';
 
 const userStore = useUserStore();
+const { t } = useI18n();
 const toast = useToast();
 
 import frontPackageJSON from '../../package.json';
@@ -78,18 +80,24 @@ const dependencies = ref({});
 const devDependencies = ref({});
 const packagesToUpdate = ref<[string, string, string][] | null>(null);
 
-if (props.stack === 'back') {
-  await getDependencies();
-  await getDevDependencies();
-} else {
-  dependencies.value = frontPackages.dependencies;
-  devDependencies.value = frontPackages.devDependencies;
+async function fetchAll() {
+  if (props.stack === 'back') {
+    await getDependencies();
+    await getDevDependencies();
+  } else {
+    dependencies.value = frontPackages.dependencies;
+    devDependencies.value = frontPackages.devDependencies;
+  }
+  await checkDependenciesUpdate();
 }
-checkDependenciesUpdate();
+
+onMounted(() => {
+  fetchAll();
+});
 
 async function getDependencies() {
-  const token = userStore.token;
   try {
+    const token = userStore.token!.token;
     const response = await fetch('http://localhost:3000/api/config/dependencies', {
       method: 'GET',
       headers: {
@@ -100,12 +108,13 @@ async function getDependencies() {
     const data = await response.json();
     dependencies.value = data;
   } catch (error) {
-    return toast.error(`Erreur': ${error}`);
+    toast.error(t('ERROR.GENERAL'));
   }
 }
+
 async function getDevDependencies() {
-  const token = userStore.token;
   try {
+    const token = userStore.token!.token;
     const response = await fetch('http://localhost:3000/api/config/devdependencies', {
       method: 'GET',
       headers: {
@@ -113,37 +122,37 @@ async function getDevDependencies() {
         'Content-Type': 'application/json',
       },
     });
+
     const data = await response.json();
     devDependencies.value = data;
   } catch (error) {
-    return toast.error(`Erreur': ${error}`);
+    toast.error(t('ERROR.GENERAL'));
   }
 }
 
-function checkDependenciesUpdate() {
-  const token = userStore.token;
-  fetch('http://localhost:3000/api/config/checkUpdatesDependencies', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      dependencies: dependencies.value,
-      devDependencies: devDependencies.value,
-    }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      packagesToUpdate.value = data;
-    })
-    .catch((error) => {
-      return toast.error(`Erreur': ${error}`);
+async function checkDependenciesUpdate() {
+  try {
+    const token = userStore.token!.token;
+    const response = await fetch('http://localhost:3000/api/config/checkUpdatesDependencies', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dependencies: dependencies.value,
+        devDependencies: devDependencies.value,
+      }),
     });
+    const data = await response.json();
+    packagesToUpdate.value = data;
+  } catch (error) {
+    toast.error(`Erreur: ${error}`);
+  }
 }
 
 function getUpdateType(currentVersion: string, updateVersion: string) {
-  const clean = (v: string) => v.replace(/^[\^~]/, ''); // supprime ^ ou ~ s'ils sont au début
+  const clean = (v: string) => v.replace(/^[\^~]/, '');
   const [cMaj, cMin, cPatch] = clean(currentVersion).split('.').map(Number);
   const [uMaj, uMin, uPatch] = clean(updateVersion).split('.').map(Number);
 

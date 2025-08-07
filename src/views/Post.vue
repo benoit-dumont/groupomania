@@ -1,131 +1,86 @@
 <template>
-  <div v-if="post" class="test">
-    <div class="content">
-      <div class="sidebar">
-        <div class="icons">
-          <img :src="getImage()" alt="Logo" />
-          <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
-            <router-link
-              :to="{
-                name: 'Profil',
-                params: { UserId: userStore.connectedUser!.id },
-              }"
-              ><i class="fas fa-user"></i
-            ></router-link>
-            <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
-            <router-link
-              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
-              :to="{ name: 'Home Dashboard' }"
-              ><i class="fas fa-tools"></i
-            ></router-link>
-          </div>
+  <div v-if="post" class="page">
+    <div class="post">
+      <div class="post-title">
+        <img :src="post.User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
+        <div class="align">
+          <p>
+            {{ post.User!.name }} {{ post.User!.firstname }} <br />
+            {{ formatDate(post.createdAt) }}
+          </p>
         </div>
-        <div class="box-posts">
-          <div class="up">
-            <div class="account">
-              <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
-              <i
-                v-if="menuDisplayed === false"
-                class="fas fa-sort-down"
-                @click="() => (menuDisplayed = !menuDisplayed)"
-              ></i>
-              <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
-            </div>
-            <transition name="logout">
-              <div v-if="menuDisplayed === true" class="logout">
-                <p @click="userStore.logout()">
-                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
-                </p>
-              </div>
-            </transition>
-          </div>
-          <div class="page">
-            <div class="post">
-              <div class="post-title">
-                <img :src="post.User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
-                <div class="align">
-                  <p>
-                    {{ post.User!.name }} {{ post.User!.firstname }} <br />
-                    {{ formatDate(post.createdAt) }}
-                  </p>
-                </div>
-              </div>
-              <div class="post-content">
-                <h2>{{ post.title }}</h2>
-                <p>
-                  {{ post.content }}
-                </p>
-              </div>
-              <div v-if="mediaUrl && isImage(mediaUrl)" class="post-image">
-                <img :src="mediaUrl" :alt="t('ALTMEDIA')" />
-              </div>
-              <div v-if="mediaUrl && isVideo(mediaUrl)" class="post-video">
-                <video controls width="350" height="200">
-                  <source :src="mediaUrl" type="video/mp4" />
-                </video>
-              </div>
-              <div
-                v-if="
-                  userStore.connectedUser!.id === post.User!.id ||
-                  userStore.connectedUser!.rank === 1 ||
-                  userStore.connectedUser!.rank === 2
-                "
-                class="post-actions"
-              >
-                <div class="update" @click="updatePost(post.id)">
-                  <i class="fa fa-pencil"></i>
-                </div>
-                <deleteAction :data="post.id" />
-              </div>
-              <div class="reactions">
-                <h3>Réactions :</h3>
-                <div class="reactions-container">
-                  <div
-                    v-for="reaction in reactionsList"
-                    :key="reaction.type"
-                    :class="reaction.active ? reaction.onClass : reaction.offClass"
-                    @click="toggleReaction(reaction.type)"
-                  >
-                    <i :class="reaction.icon"></i>
-                    <span>{{ reaction.count }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <ul v-if="post.Comments.length !== 0" class="comments">
-              <li v-for="comment in post.Comments" :key="comment.id" class="comment">
-                <div class="comment-title">
-                  <img :src="comment.User!.avatar" />
-                  <p>
-                    {{ comment.User!.name }} {{ comment.User!.firstname }} <br />
-                    {{ formatDate(comment.createdAt) }}
-                  </p>
-                </div>
-                <div class="comment-content">
-                  <p>{{ comment.content }}</p>
-                </div>
-                <div
-                  v-if="
-                    userStore.connectedUser!.id === comment.User!.id ||
-                    userStore.connectedUser!.rank === 1 ||
-                    userStore.connectedUser!.rank === 2
-                  "
-                  class="comment-actions"
-                >
-                  <div class="update" @click="updateComment(comment.id)">
-                    <i class="fa fa-pencil"></i>
-                  </div>
-                  <deleteAction :data="comment.id" />
-                </div>
-              </li>
-            </ul>
-            <div v-else class="no-comment">
-              <h2>{{ t('NO.COMMENT') }}</h2>
-            </div>
+      </div>
+      <div class="post-content">
+        <h2>{{ post.title }}</h2>
+        <p>
+          {{ post.content }}
+        </p>
+      </div>
+      <div v-if="mediaUrl && isImage(mediaUrl)" class="post-image">
+        <img :src="mediaUrl" :alt="t('ALTMEDIA')" />
+      </div>
+      <div v-if="mediaUrl && isVideo(mediaUrl)" class="post-video">
+        <video controls width="350" height="200">
+          <source :src="mediaUrl" type="video/mp4" />
+        </video>
+      </div>
+      <div
+        v-if="
+          userStore.connectedUser!.id === post.User!.id ||
+          userStore.connectedUser!.rank === 1 ||
+          userStore.connectedUser!.rank === 2
+        "
+        class="post-actions"
+      >
+        <div class="update" @click="updatePost(post.id)">
+          <i class="fa fa-pencil"></i>
+        </div>
+        <deleteAction :data="post.id" />
+      </div>
+      <div class="reactions">
+        <h3>Réactions :</h3>
+        <div class="reactions-container">
+          <div
+            v-for="reaction in reactionsList"
+            :key="reaction.type"
+            :class="reaction.active ? reaction.onClass : reaction.offClass"
+            @click="toggleReaction(reaction.type)"
+          >
+            <i :class="reaction.icon"></i>
+            <span>{{ reaction.count }}</span>
           </div>
         </div>
       </div>
+    </div>
+    <ul v-if="post.Comments.length !== 0" class="comments">
+      <li v-for="comment in post.Comments" :key="comment.id" class="comment">
+        <div class="comment-title">
+          <img :src="comment.User!.avatar" />
+          <p>
+            {{ comment.User!.name }} {{ comment.User!.firstname }} <br />
+            {{ formatDate(comment.createdAt) }}
+          </p>
+        </div>
+        <div class="comment-content">
+          <p>{{ comment.content }}</p>
+        </div>
+        <div
+          v-if="
+            userStore.connectedUser!.id === comment.User!.id ||
+            userStore.connectedUser!.rank === 1 ||
+            userStore.connectedUser!.rank === 2
+          "
+          class="comment-actions"
+        >
+          <div class="update" @click="updateComment(comment.id)">
+            <i class="fa fa-pencil"></i>
+          </div>
+          <deleteAction :data="comment.id" />
+        </div>
+      </li>
+    </ul>
+    <div v-else class="no-comment">
+      <h2>{{ t('NO.COMMENT') }}</h2>
     </div>
   </div>
 </template>
@@ -140,7 +95,7 @@ import { useHead } from '@vueuse/head';
 import deleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
-import { formatDate, getImage } from '@/utils';
+import { formatDate } from '@/utils';
 import { useToast, useConnectedUser } from '@/composables';
 import { Post, Comment, ReactionTypes, Reaction } from '@/types';
 
@@ -184,7 +139,6 @@ const supportedExtensions = ref({
   image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
   video: ['mp4', 'avi'],
 });
-const menuDisplayed: Ref<boolean> = ref(false);
 
 onMounted(async () => {
   await getConnectedUser();
@@ -193,12 +147,12 @@ onMounted(async () => {
 });
 
 function fetchPostData() {
-  const token = userStore.token;
+  const token = userStore.token!.token;
   if (+route.params.PostId < 0) return;
   fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
     method: 'GET',
     headers: {
-      Authorization: `Bearer: ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   })
@@ -253,7 +207,7 @@ function deletePost({ id }: Post) {
   // eslint-disable-next-line no-alert
   const validation = window.confirm('Are you sure you want to delete this post ?');
   if (validation === true) {
-    const token = userStore.token;
+    const token = userStore.token!.token;
     fetch(`http://localhost:3000/api/post/${id}`, {
       method: 'DELETE',
       headers: {
@@ -278,7 +232,7 @@ function deleteComment({ id }: Comment) {
   // eslint-disable-next-line no-alert
   const validation = window.confirm('Are you sure you want to delete this comment ?');
   if (validation === true) {
-    const token = userStore.token;
+    const token = userStore.token!.token;
     fetch(`http://localhost:3000/api/comment/${id}`, {
       method: 'DELETE',
       headers: {
@@ -341,11 +295,11 @@ const reactionsList = computed(() =>
 
 // Méthodes à adapter selon ton implémentation
 const addReaction = (type: ReactionTypes['type']) => {
-  const token = userStore.token;
+  const token = userStore.token!.token;
   fetch(`http://localhost:3000/api/reaction/`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer: ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -364,12 +318,12 @@ const addReaction = (type: ReactionTypes['type']) => {
 };
 
 const deleteReaction = (id: Reaction['id']) => {
-  const token = userStore.token;
+  const token = userStore.token!.token;
   if (+id < 0) return;
   fetch(`http://localhost:3000/api/reaction/${+id}`, {
     method: 'DELETE',
     headers: {
-      Authorization: `Bearer: ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   })
@@ -384,12 +338,12 @@ const deleteReaction = (id: Reaction['id']) => {
 };
 
 const updateReaction = (id: Reaction['id'], type: ReactionTypes['type']) => {
-  const token = userStore.token;
+  const token = userStore.token!.token;
   if (+id < 0) return;
   fetch(`http://localhost:3000/api/reaction/${id}`, {
     method: 'PATCH',
     headers: {
-      Authorization: `Bearer: ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -417,93 +371,6 @@ const toggleReaction = (type: ReactionTypes['type']) => {
 </script>
 
 <style scoped lang="scss">
-.content {
-  background-color: var(--app-background-color);
-  display: flex;
-}
-
-.content-container {
-  display: flex;
-  justify-content: space-between;
-  background-color: var(--app-background-color);
-  padding-top: 5vh;
-}
-
-.sidebar {
-  background-color: var(--app-sidebar-color);
-  height: 100vh;
-  display: inline-flex;
-  z-index: 99999;
-  width: 100%;
-}
-
-.icons {
-  display: inline-flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: color 450ms ease-in-out;
-  height: 70%;
-}
-
-.icons img {
-  margin: 2vh;
-  width: 85px;
-  height: 85px;
-  object-fit: cover;
-}
-
-.icons i {
-  font-size: 32px;
-  padding: 1vh;
-}
-
-.icons a {
-  transition: color 450ms ease-in-out;
-  color: var(--app-text-primary-color);
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-.icon-container {
-  display: inline-flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: color 450ms ease-in-out;
-  height: 70%;
-}
-
-.up {
-  height: 10vh;
-  display: flex;
-  justify-content: flex-end;
-  padding-right: 4vh;
-  position: relative;
-}
-
-.account {
-  display: inline-flex;
-  align-items: center;
-  color: var(--app-text-primary-color);
-  padding: 2vh;
-}
-
-.account i {
-  padding-left: 1vh;
-  cursor: pointer;
-}
-
-.account img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 30px;
-  border: 1px solid #2d3036;
-}
-
 .post-title {
   display: flex;
   align-items: center;
@@ -518,41 +385,6 @@ const toggleReaction = (type: ReactionTypes['type']) => {
 
 .align p {
   font-size: large;
-}
-
-.logout {
-  height: 5vh;
-  padding: 1.5vh;
-  position: absolute;
-  bottom: 0;
-  background: var(--app-background-color);
-  z-index: 99999;
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  transform: translateY(100%);
-  cursor: pointer;
-}
-
-.logout i {
-  padding: 0.5vh;
-}
-
-.logout p {
-  color: var(--app-text-primary-color);
-}
-
-.logout-enter {
-  opacity: 0.5;
-}
-
-.logout-enter-active {
-  opacity: 1;
-}
-
-.box-posts {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
 }
 
 .page {
@@ -722,39 +554,6 @@ const toggleReaction = (type: ReactionTypes['type']) => {
 }
 
 @media (max-width: 1000px) {
-  .sidebar {
-    display: initial;
-  }
-
-  .box-posts {
-    position: initial;
-  }
-
-  .icons {
-    height: initial;
-  }
-
-  .icon-container {
-    flex-direction: row;
-    position: fixed;
-    bottom: 0;
-    height: initial;
-    width: 100%;
-    left: 0;
-    right: 0;
-    padding: 2vh;
-    background: var(--app-sidebar-color);
-    z-index: 9999;
-    margin-top: 5vh;
-  }
-
-  .up {
-    position: absolute;
-    top: 3vh;
-    right: 2vh;
-    padding-right: 0;
-  }
-
   .page {
     display: block;
     border-top-left-radius: 0;

@@ -7,19 +7,20 @@ export function useConnectedUser() {
   const { t } = useI18n();
   const toast = useToast();
 
-  return async function getConnectedUser() {
-    const token = userStore.token;
+  return function getConnectedUser() {
+    const token = userStore.token!.token;
     try {
-      const response = await fetch('http://localhost:3000/api/user/me', {
+      fetch('http://localhost:3000/api/user/me', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-      }).then();
-
-      const { user } = await response.json();
-      userStore.saveConnectedUser(user);
+      })
+        .then((response) => response.json())
+        .then(({ user }) => {
+          userStore.saveConnectedUser(user);
+        });
     } catch {
       return toast.error(t('ERROR.GENERAL'));
     }

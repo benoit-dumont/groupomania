@@ -1,5 +1,5 @@
 <template>
-  <div class="component-delete" @click="() => EventBus.emit('deleteActionPressed', props.data)">
+  <div class="component-delete" @click="emitEvent">
     <i class="fa fa-trash-o"></i>
   </div>
 </template>
@@ -10,12 +10,16 @@ import EventBus from '../EventBus';
 const props = defineProps<{
   data: number;
 }>();
+function emitEvent() {
+  EventBus.emit('deleteActionPressed', props.data);
+}
 </script>
 
 <style>
 .component-delete {
   width: fit-content;
   transition: all 450ms ease-in-out;
+  cursor: pointer;
 }
 
 .component-delete :hover {

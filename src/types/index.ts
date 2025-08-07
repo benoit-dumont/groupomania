@@ -66,8 +66,10 @@ export interface Token {
 }
 
 export interface TokenData {
-  token: Token['token'];
-  date: number;
+  token: {
+    token: Token['token'];
+    date: number;
+  };
 }
 
 export interface ReactionTypes {

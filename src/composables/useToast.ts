@@ -1,7 +1,7 @@
 import { toast, ToastOptions } from 'vue3-toastify';
 
 const defaultOptions: ToastOptions = {
-  position: toast.POSITION.BOTTOM_RIGHT,
+  // position: toast.POSITION.BOTTOM_RIGHT,
   autoClose: 3000,
 };
 

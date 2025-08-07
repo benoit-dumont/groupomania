@@ -1,103 +1,37 @@
 <template>
-  <div class="test">
-    <div class="content">
-      <div class="side">
-        <div class="side-container">
-          <router-link :to="{ name: 'Accueil' }">
-            <p>
-              <img :src="getImage()" alt="Logo Groupomania" />
-            </p>
-          </router-link>
-          <div class="icons">
-            <router-link
-              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
-              :to="{ name: 'Home Dashboard' }"
-            >
+  <div class="middle">
+    <div class="middle-container">
+      <h1>{{ t('DASHBOARDCOMMENT.TITLE') }}</h1>
+      <div class="list-comments">
+        <div v-for="{ id, content, User, createdAt } in comments" :key="id" class="comment">
+          <div class="comment-container">
+            <img :src="User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
+            <div class="align">
               <p>
-                <i class="fas fa-home"></i>
-                <span>{{ t('DASHBOARD.LISTDASHBOARD') }}</span>
+                {{ User!.name }} {{ User!.firstname }} <br />
+                {{ formatDate(createdAt) }}
               </p>
-            </router-link>
-            <router-link
-              v-if="userStore.connectedUser!.rank === 1"
-              :to="{ name: 'User Dashboard' }"
-            >
-              <p>
-                <i class="fas fa-user"></i>
-                <span>{{ t('DASHBOARD.LISTUSER') }}</span>
-              </p>
-            </router-link>
-            <router-link :to="{ name: 'Post Dashboard' }">
-              <p>
-                <i class="fas fa-comment-alt"></i>
-                <span>{{ t('DASHBOARD.LISTPOST') }}</span>
-              </p>
-            </router-link>
-            <router-link :to="{ name: 'Comment Dashboard' }">
-              <p>
-                <i class="fas fa-comment"></i>
-                <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
-              </p>
-            </router-link>
-            <router-link
-              v-if="userStore.connectedUser!.rank === 1"
-              :to="{ name: 'Token Dashboard' }"
-            >
-              <p>
-                <i class="fas fa-ticket-alt"></i>
-                <span>{{ t('DASHBOARD.LISTTOKEN') }}</span>
-              </p>
-            </router-link>
-          </div>
-          <div v-if="menuDisplayed === true" class="logout">
-            <p @click="userStore.logout()"><i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}</p>
-          </div>
-          <div class="account">
-            <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
-            <i
-              v-if="menuDisplayed === false"
-              class="fas fa-sort-down"
-              @click="() => (menuDisplayed = !menuDisplayed)"
-            ></i>
-            <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
-          </div>
-        </div>
-      </div>
-      <div class="middle">
-        <div class="middle-container">
-          <h2>{{ t('DASHBOARDCOMMENT.TITLE') }}</h2>
-          <div class="list-comments">
-            <div v-for="{ id, content, User, createdAt } in comments" :key="id" class="comment">
-              <div class="comment-container">
-                <img :src="User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
-                <div class="align">
-                  <p>
-                    {{ User!.name }} {{ User!.firstname }} <br />
-                    {{ formatDate(createdAt) }}
-                  </p>
-                </div>
-              </div>
-              <div class="comment-content">
-                <p>
-                  {{ content }}
-                </p>
-              </div>
-              <div class="comment-actions">
-                <div
-                  class="update"
-                  @click="
-                    () =>
-                      router.push({
-                        name: 'Comment Modification',
-                        params: { CommentId: id },
-                      })
-                  "
-                >
-                  <i class="fa fa-pencil"></i>
-                </div>
-                <deleteAction :data="id" />
-              </div>
             </div>
+          </div>
+          <div class="comment-content">
+            <p>
+              {{ content }}
+            </p>
+          </div>
+          <div class="comment-actions">
+            <div
+              class="update"
+              @click="
+                () =>
+                  router.push({
+                    name: 'Comment Modification',
+                    params: { CommentId: id },
+                  })
+              "
+            >
+              <i class="fa fa-pencil"></i>
+            </div>
+            <deleteAction :data="id" />
           </div>
         </div>
       </div>
@@ -116,7 +50,7 @@ import DeleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Comment } from '@/types';
-import { formatDate, getImage } from '@/utils';
+import { formatDate } from '@/utils';
 import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
@@ -136,7 +70,6 @@ useHead({
 });
 
 const comments: Ref<Comment[]> = ref([]);
-const menuDisplayed: Ref<boolean> = ref(false);
 
 onMounted(async () => {
   await getConnectedUser();
@@ -145,7 +78,7 @@ onMounted(async () => {
 });
 
 function getComments() {
-  const token = userStore.token;
+  const token = userStore.token!.token;
   fetch('http://localhost:3000/api/comment/', {
     method: 'GET',
     headers: {
@@ -165,7 +98,7 @@ function getComments() {
 function deleteComment(data: Comment['id']) {
   const validation = window.confirm(t('CONFIRM.COMMENT'));
   if (validation === true) {
-    const token = userStore.token;
+    const token = userStore.token!.token;
     fetch(`http://localhost:3000/api/comment/${data}`, {
       method: 'DELETE',
       headers: {
@@ -178,78 +111,6 @@ function deleteComment(data: Comment['id']) {
 </script>
 
 <style scoped lang="scss">
-.content {
-  background-color: var(--app-background-color);
-  display: flex;
-}
-
-.content-container {
-  display: flex;
-  justify-content: space-between;
-  background-color: #2d3036;
-  padding-top: 5vh;
-}
-
-.side {
-  flex-shrink: 2;
-  background: var(--app-sidebar-color);
-}
-
-.side-container {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.side-container img {
-  width: 175px;
-  height: 75px;
-  object-fit: cover;
-  margin: 3vh;
-}
-
-.icons {
-  display: inline-flex;
-  flex-direction: column;
-}
-
-.icons a {
-  text-decoration: none;
-  color: var(--app-text-primary-color);
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-.logout i {
-  margin: 1vh;
-  font-size: 24px;
-}
-
-.account i {
-  padding-left: 1vh;
-  cursor: pointer;
-}
-
-.icons a i {
-  margin: 1vh;
-  font-size: 24px;
-}
-
-.icons p {
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.logout {
-  position: fixed;
-  bottom: 10vh;
-  color: var(--app-text-primary-color);
-  cursor: pointer;
-}
-
 .middle {
   background-color: var(--app-background-color);
   width: 100%;
@@ -257,7 +118,7 @@ function deleteComment(data: Comment['id']) {
   height: 100vh;
 }
 
-.middle-container h2 {
+.middle-container h1 {
   padding: 5vh 0 0 5vh;
 }
 
@@ -343,57 +204,7 @@ function deleteComment(data: Comment['id']) {
   transform: scale(1.11);
 }
 
-.account {
-  display: inline-flex;
-  align-items: center;
-  color: var(--app-text-primary-color);
-  padding: 2vh;
-  position: fixed;
-  bottom: 1vh;
-  margin: 0 2vh;
-}
-
-.account img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 30px;
-  border: 1px solid #2d3036;
-  margin: 0;
-}
-
 @media (max-width: 700px) {
-  .content {
-    display: initial;
-  }
-
-  .side {
-    height: initial;
-  }
-
-  .side-container {
-    height: 20vh;
-    width: 100%;
-    position: initial;
-    align-items: initial;
-  }
-
-  .icons {
-    flex-direction: row;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    position: fixed;
-    background: var(--app-sidebar-color);
-    padding: 2vh 2vh 0;
-    z-index: 9999;
-    justify-content: space-between;
-  }
-
-  .icons span {
-    display: none;
-  }
-
   .data {
     justify-content: center;
   }
@@ -402,27 +213,6 @@ function deleteComment(data: Comment['id']) {
     text-align: center;
     padding: 0;
     padding-top: 4vh;
-  }
-
-  .logout {
-    top: 12vh;
-    left: 0;
-    right: 0;
-    bottom: initial;
-    text-align: center;
-    position: absolute;
-  }
-
-  .account {
-    bottom: initial;
-    top: 3vh;
-    right: 2vh;
-    position: absolute;
-  }
-
-  .account i {
-    padding-left: 1vh;
-    cursor: pointer;
   }
 
   .list-comments {
@@ -455,17 +245,6 @@ function deleteComment(data: Comment['id']) {
     bottom: 0;
     left: 0;
     right: 0;
-  }
-}
-@media (max-width: 400px) {
-  .side-container a img {
-    max-width: 175px;
-    width: 50%;
-  }
-
-  .account {
-    margin: 0;
-    right: 1vh;
   }
 }
 </style>

@@ -1,113 +1,68 @@
 <template>
-  <div class="test">
-    <div class="content">
-      <div class="sidebar">
-        <div class="icons">
-          <img :src="getImage()" alt="Logo" />
-          <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
-            <router-link
-              :to="{
-                name: 'Profil',
-                params: { UserId: userStore.connectedUser!.id },
-              }"
-              ><i class="fas fa-user"></i
-            ></router-link>
-            <router-link :to="{ name: 'Settings' }"><i class="fas fa-cog"></i></router-link>
-            <router-link
-              v-if="userStore.connectedUser!.rank === 1 || userStore.connectedUser!.rank === 2"
-              :to="{ name: 'Home Dashboard' }"
-              ><i class="fas fa-tools"></i
-            ></router-link>
-          </div>
-        </div>
-        <div class="box-posts">
-          <div class="up">
-            <div class="account">
-              <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
-              <i
-                v-if="menuDisplayed === false"
-                class="fas fa-sort-down"
-                @click="() => (menuDisplayed = !menuDisplayed)"
-              ></i>
-              <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
+  <div class="profile">
+    <div class="profile-container">
+      <div class="infos">
+        <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
+        <h1>
+          {{ userStore.connectedUser!.name }}
+          {{ userStore.connectedUser!.firstname }}
+        </h1>
+        <h2>{{ t('PROFIL.LATESTPOSTS') }}</h2>
+      </div>
+      <div v-if="posts.length !== 0" class="latest-posts">
+        <div class="list-posts">
+          <div
+            v-for="{ id, title, content, createdAt, Reactions, Comments, media } in posts"
+            :key="id"
+            class="post"
+          >
+            <div class="post-title">
+              <h2>{{ title }}</h2>
+              <p>{{ formatDate(createdAt) }}</p>
             </div>
-            <transition name="logout">
-              <div v-if="menuDisplayed === true" class="logout">
-                <p @click="userStore.logout()">
-                  <i class="fas fa-sign-out-alt"></i>{{ t('LOGOUT') }}
-                </p>
+            <div class="post-content">
+              {{ content }}
+              <div v-if="media && isImage(media)" class="post-image">
+                <img :src="getMediaUrl(media)" :alt="t('ALTMEDIA')" />
               </div>
-            </transition>
-          </div>
-          <div class="profile">
-            <div class="profile-container">
-              <div class="infos">
-                <img :src="userStore.connectedUser!.avatar" :alt="t('ALTIMAGEPROFILE')" />
-                <h1>
-                  {{ userStore.connectedUser!.name }}
-                  {{ userStore.connectedUser!.firstname }}
-                </h1>
-                <h2>{{ t('PROFIL.LATESTPOSTS') }}</h2>
+              <div v-if="media && isVideo(media)" class="post-video">
+                <video controls width="350" height="200">
+                  <source :src="getMediaUrl(media)" type="video/mp4" />
+                </video>
               </div>
-              <div v-if="posts.length !== 0" class="latest-posts">
-                <div class="list-posts">
-                  <div
-                    v-for="{ id, title, content, createdAt, Reactions, Comments, media } in posts"
-                    :key="id"
-                    class="post"
-                  >
-                    <div class="post-title">
-                      <h2>{{ title }}</h2>
-                      <p>{{ formatDate(createdAt) }}</p>
-                    </div>
-                    <div class="post-content">
-                      {{ content }}
-                      <div v-if="media && isImage(media)" class="post-image">
-                        <img :src="getMediaUrl(media)" :alt="t('ALTMEDIA')" />
-                      </div>
-                      <div v-if="media && isVideo(media)" class="post-video">
-                        <video controls width="350" height="200">
-                          <source :src="getMediaUrl(media)" type="video/mp4" />
-                        </video>
-                      </div>
-                      <div class="post-actions">
-                        <div class="update" @click="updatePost(id)">
-                          <i class="fa fa-pencil"></i>
-                        </div>
-                        <deleteAction :data="id" />
-                      </div>
-                      <div class="post-infos">
-                        <router-link :to="{ name: 'Post', params: { PostId: id } }">
-                          <p>
-                            {{ Reactions.length }}
-                            <span>{{ t('DASHBOARD.LISTREACTS') }}</span>
-                          </p>
-                        </router-link>
-                        <router-link :to="{ name: 'Post', params: { PostId: id } }">
-                          <p>
-                            {{ Comments.length }}
-                            <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
-                          </p>
-                        </router-link>
-                      </div>
-                    </div>
-                  </div>
+              <div class="post-actions">
+                <div class="update" @click="updatePost(id)">
+                  <i class="fa fa-pencil"></i>
                 </div>
+                <deleteAction :data="id" />
               </div>
-              <div v-else class="no-posts">
-                <h2>{{ t('NO.POST.PROFILE') }}</h2>
+              <div class="post-infos">
+                <router-link :to="{ name: 'Post', params: { PostId: id } }">
+                  <p>
+                    {{ Reactions.length }}
+                    <span>{{ t('DASHBOARD.LISTREACTS') }}</span>
+                  </p>
+                </router-link>
+                <router-link :to="{ name: 'Post', params: { PostId: id } }">
+                  <p>
+                    {{ Comments.length }}
+                    <span>{{ t('DASHBOARD.LISTCOMMENT') }}</span>
+                  </p>
+                </router-link>
               </div>
             </div>
           </div>
         </div>
+      </div>
+      <div v-else class="no-posts">
+        <h2>{{ t('NO.POST.PROFILE') }}</h2>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, Ref, ref, computed, watch, onBeforeUnmount } from 'vue';
+import { onMounted, Ref, ref, watch, onBeforeUnmount } from 'vue';
 import EventBus from '../EventBus';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -117,7 +72,7 @@ import deleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Post, UserId } from '@/types';
-import { formatDate, getImage } from '@/utils';
+import { formatDate } from '@/utils';
 import { useToast, useConnectedUser } from '@/composables';
 
 const { t } = useI18n();
@@ -142,7 +97,6 @@ const supportedExtensions = ref({
   image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
   video: ['mp4', 'avi'],
 });
-const menuDisplayed: Ref<boolean> = ref(false);
 
 onMounted(async () => {
   await getConnectedUser();
@@ -151,7 +105,7 @@ onMounted(async () => {
 });
 
 function getPosts() {
-  const token = userStore.token;
+  const token = userStore.token!.token;
   if (+route.params.UserId < 0) return;
   fetch(`http://localhost:3000/api/user/${+route.params.UserId}`, {
     method: 'GET',
@@ -180,7 +134,7 @@ function deletePost(id: Post['id']) {
   // eslint-disable-next-line no-alert
   const validation = window.confirm(t('CONFIRM.POST'));
   if (validation === true) {
-    const token = userStore.token;
+    const token = userStore.token!.token;
     fetch(`http://localhost:3000/api/post/${id}`, {
       method: 'DELETE',
       headers: {
@@ -258,134 +212,12 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.content {
-  background-color: var(--app-background-color);
-  display: flex;
-}
-
-.content-container {
-  display: flex;
-  justify-content: space-between;
-  background-color: var(--app-background-color);
-  padding-top: 5vh;
-}
-
-.sidebar {
-  background-color: var(--app-sidebar-color);
-  display: inline-flex;
-  z-index: 99999;
-  width: 100%;
-  height: 100vh;
-}
-
-.icons {
-  display: inline-flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: color 450ms ease-in-out;
-  height: 70%;
-}
-
-.icon-container {
-  display: inline-flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: color 450ms ease-in-out;
-  height: 70%;
-}
-
-.icons i {
-  font-size: 32px;
-  padding: 1vh;
-}
-
 .post a {
   text-decoration: none;
 }
 
-.icons a {
-  transition: color 450ms ease-in-out;
-  color: var(--app-text-primary-color) !important;
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-.icons img {
-  margin: 2vh;
-  width: 85px;
-  height: 85px;
-  object-fit: cover;
-}
-
-.box-posts {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-
-.up {
-  height: 10vh;
-  display: flex;
-  justify-content: flex-end;
-  padding-right: 4vh;
-  position: relative;
-}
-
 .post-title {
   text-align: left;
-}
-
-.account {
-  display: inline-flex;
-  align-items: center;
-  color: var(--app-text-primary-color);
-  padding: 2vh;
-}
-
-.account i {
-  padding-left: 1vh;
-  cursor: pointer;
-}
-
-.account img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 30px;
-  border: 1px solid #2d3036;
-}
-
-.logout {
-  height: 5vh;
-  padding: 1.5vh;
-  position: absolute;
-  bottom: 0;
-  background: var(--app-text-primary-color);
-  z-index: 99999;
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  transform: translateY(100%);
-  cursor: pointer;
-}
-
-.logout i {
-  padding: 0.5vh;
-}
-
-.logout p {
-  color: var(--app-background-color);
-}
-
-.logout-enter {
-  opacity: 0.5;
-}
-
-.logout-enter-active {
-  opacity: 1;
 }
 
 .profile {
@@ -498,53 +330,6 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 700px) {
-  .sidebar {
-    display: initial;
-    height: initial;
-  }
-
-  .box-posts {
-    position: initial;
-    padding-bottom: 10vh;
-  }
-
-  .icon {
-    height: 0;
-  }
-
-  .icons {
-    height: initial;
-  }
-
-  .logout {
-    height: 8vh;
-    padding: 0.5vh;
-    text-align: center;
-    bottom: -4vh;
-    right: -1vh;
-  }
-
-  .icon-container {
-    flex-direction: row;
-    position: fixed;
-    bottom: 0;
-    height: initial;
-    width: 100%;
-    left: 0;
-    right: 0;
-    padding: 2vh;
-    background: var(--app-sidebar-color);
-    z-index: 9999;
-    margin-top: 5vh;
-  }
-
-  .up {
-    position: absolute;
-    top: 2vh;
-    right: 2vh;
-    padding-right: 0;
-  }
-
   .post {
     padding: 2vh;
     position: relative;

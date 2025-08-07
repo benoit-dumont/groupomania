@@ -101,7 +101,7 @@
     "SWITCHLOGINREGISTER": "S'inscrire",
     "TITLE": "Connexion",
     "USERNAMEEMAILLABEL": "Pseudonyme / Email",
-    "USERNAMEEMAILPLACEHOLDER": "exemple@groupomania.fr"
+    "USERNAMEEMAILPLACEHOLDER": "{email}"
   },
   "LOGOUT": "Déconnexion",
   "NAME": {
@@ -169,7 +169,7 @@
     "AVATARLABEL": "Avatar",
     "AVATARSUBMIT": "Uploader une image",
     "EMAILLABEL": "Email",
-    "EMAILPLACEHOLDER": "exemple@domain.fr",
+    "EMAILPLACEHOLDER": "{email}",
     "FIRSTNAMELABEL": "Prénom",
     "FIRSTNAMEPLACEHOLDER": "exemple: Doe",
     "NAMELABEL": "Nom",
@@ -203,7 +203,7 @@
   },
   "USEREDIT": {
     "EMAILLABEL": "Email",
-    "EMAILPLACEHOLDER": "exemple@domain.fr",
+    "EMAILPLACEHOLDER": "{email}",
     "FIRSTNAMELABEL": "Prénom",
     "FIRSTNAMEPLACEHOLDER": "exemple: Doe",
     "IMGOPACITYMESSAGE": "Modifier",

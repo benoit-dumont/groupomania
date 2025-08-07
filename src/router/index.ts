@@ -5,6 +5,9 @@ import {
   NavigationGuardNext,
   RouteLocationNormalized,
 } from 'vue-router';
+
+import { layouts, type LayoutName } from '@/layouts';
+
 import Signup from '../views/Signup.vue';
 import Login from '../views/Login.vue';
 import Accueil from '../views/Accueil.vue';
@@ -23,32 +26,37 @@ import CommentEdit from '../views/CommentEdit.vue';
 import { useUserStore } from '../stores/user';
 import { TokenData } from '@/types';
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    layout: LayoutName;
+  }
+}
 const routes: Array<RouteRecordRaw> = [
-  { path: '/signup', name: 'Signup', component: Signup },
-  { path: '/login', name: 'Login', component: Login },
+  { path: '/signup', name: 'Signup', component: Signup, meta: { layout: 'DefaultLayout' } },
+  { path: '/login', name: 'Login', component: Login, meta: { layout: 'DefaultLayout' } },
   {
     path: '/',
     name: 'Accueil',
     component: Accueil,
-    meta: { auth: true },
+    meta: { auth: true, layout: 'ConnectedLayout' },
   },
   {
     path: '/post/:PostId',
     name: 'Post',
     component: Post,
-    meta: { auth: true },
+    meta: { auth: true, layout: 'ConnectedLayout' },
   },
   {
     path: '/profil/:UserId',
     name: 'Profil',
     component: Profil,
-    meta: { auth: true },
+    meta: { auth: true, layout: 'ConnectedLayout' },
   },
   {
     path: '/settings',
     name: 'Settings',
     component: Settings,
-    meta: { auth: true },
+    meta: { auth: true, layout: 'ConnectedLayout' },
   },
   {
     path: '/user/:UserId/edit',
@@ -56,6 +64,7 @@ const routes: Array<RouteRecordRaw> = [
     component: UserEdit,
     meta: {
       auth: true,
+      layout: 'ConnectedLayout',
       rights: {
         owner: true,
         rank: 1,
@@ -70,6 +79,7 @@ const routes: Array<RouteRecordRaw> = [
     component: PostEdit,
     meta: {
       auth: true,
+      layout: 'ConnectedLayout',
       rights: {
         owner: true,
         rank: 2,
@@ -84,6 +94,7 @@ const routes: Array<RouteRecordRaw> = [
     component: CommentEdit,
     meta: {
       auth: true,
+      layout: 'ConnectedLayout',
       rights: {
         owner: true,
         rank: 2,
@@ -96,31 +107,51 @@ const routes: Array<RouteRecordRaw> = [
     path: '/admin/dashboard',
     name: 'Home Dashboard',
     component: DashboardHome,
-    meta: { auth: true, rights: { rank: 2, owner: false, apiPath: '', ownerKey: '' } },
+    meta: {
+      auth: true,
+      layout: 'AdminLayout',
+      rights: { rank: 2, owner: false, apiPath: '', ownerKey: '' },
+    },
   },
   {
     path: '/admin/user',
     name: 'User Dashboard',
     component: DashboardUser,
-    meta: { auth: true, rights: { rank: 1, owner: false, apiPath: '', ownerKey: '' } },
+    meta: {
+      auth: true,
+      layout: 'AdminLayout',
+      rights: { rank: 1, owner: false, apiPath: '', ownerKey: '' },
+    },
   },
   {
     path: '/admin/post',
     name: 'Post Dashboard',
     component: DashboardPost,
-    meta: { auth: true, rights: { rank: 2, owner: false, apiPath: '', ownerKey: '' } },
+    meta: {
+      auth: true,
+      layout: 'AdminLayout',
+      rights: { rank: 2, owner: false, apiPath: '', ownerKey: '' },
+    },
   },
   {
     path: '/admin/comment',
     name: 'Comment Dashboard',
     component: DashboardComment,
-    meta: { auth: true, rights: { rank: 2, owner: false, apiPath: '', ownerKey: '' } },
+    meta: {
+      auth: true,
+      layout: 'AdminLayout',
+      rights: { rank: 2, owner: false, apiPath: '', ownerKey: '' },
+    },
   },
   {
     path: '/admin/token',
     name: 'Token Dashboard',
     component: DashboardToken,
-    meta: { auth: true, rights: { rank: 1, owner: false, apiPath: '', ownerKey: '' } },
+    meta: {
+      auth: true,
+      layout: 'AdminLayout',
+      rights: { rank: 1, owner: false, apiPath: '', ownerKey: '' },
+    },
   },
 ];
 
@@ -150,6 +181,14 @@ router.beforeEach(
     next();
   },
 );
+
+router.beforeEach((to, from, next) => {
+  const layout = to.meta.layout ?? 'DefaultLayout';
+  if (!(layout in layouts)) {
+    to.meta.layout = 'DefaultLayout';
+  }
+  next();
+});
 
 // Guard pour les droits (ownership & rank)
 router.beforeEach(

@@ -10,7 +10,7 @@
             v-model="identifiant"
             type="text"
             name="identifiant"
-            :placeholder="t('LOGIN.USERNAMEEMAILPLACEHOLDER')"
+            :placeholder="t('LOGIN.USERNAMEEMAILPLACEHOLDER', 'example@groupomania.fr')"
           />
           <label>{{ t('LOGIN.PASSWORDLABEL') }} *</label>
           <input
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useHead } from '@vueuse/head';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
