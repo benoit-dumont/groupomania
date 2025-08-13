@@ -1,7 +1,7 @@
 <template>
   <div class="test">
     <div class="content-signup">
-      <img :src="getImage()" alt="Logo Groupomania" />
+      <img :src="logoSrc" alt="Logo Groupomania" />
       <h2>{{ t('SIGNUP.TITLE') }}</h2>
       <form>
         <div class="champ">
@@ -116,11 +116,12 @@ import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import { getImage } from '@/utils';
+import { useTheme } from '@/composables/useTheme';
 import { useToast } from '@/composables';
 import { User } from '@/types';
 
 const { t } = useI18n();
+const { logoSrc } = useTheme();
 const router = useRouter();
 const toast = useToast();
 

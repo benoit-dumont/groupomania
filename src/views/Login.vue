@@ -2,7 +2,7 @@
   <div class="test">
     <div class="content-login">
       <div class="content-login-container">
-        <img :src="getImage()" alt="Logo Groupomania" />
+        <img :src="logoSrc" alt="Logo Groupomania" />
         <h2>{{ t('LOGIN.TITLE') }}</h2>
         <form @submit.prevent="submit">
           <label>{{ t('LOGIN.USERNAMEEMAILLABEL') }} *</label>
@@ -40,12 +40,14 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 import { useUserStore } from '@/stores/';
-import { getImage } from '@/utils';
+import { useTheme } from '@/composables/useTheme';
+
 import { Token } from '@/types';
 import { useToast } from '@/composables';
 
 const userStore = useUserStore();
 const { t } = useI18n();
+const { logoSrc } = useTheme();
 const router = useRouter();
 const toast = useToast();
 
@@ -97,6 +99,7 @@ async function submit() {
           token: data,
           date: Date.now(),
         };
+        // @ts-ignore
         userStore.saveToken(tokenData);
         setTimeout(() => router.push({ name: 'Accueil' }), 4000);
         return toast.success(t('LOGIN.SUCCESS'));

@@ -39,7 +39,7 @@
         <p>{{ $t('SETTINGS.THEMEDESC') }}</p>
       </div>
       <div class="colors">
-        <input id="mod" v-model="darkMode" type="checkbox" class="colors" /><label
+        <input id="mod" type="checkbox" class="colors" @click="toggleTheme" /><label
           for="mod"
           class="colors"
           >Toggle</label
@@ -93,7 +93,7 @@ import { useHead } from '@vueuse/head';
 
 import { Token } from '@/types';
 import { formatDate } from '@/utils';
-import { useToast, useConnectedUser } from '@/composables';
+import { useToast, useConnectedUser, useTheme } from '@/composables';
 import { useUserStore } from '@/stores';
 import { useRouter } from 'vue-router';
 import { Header } from 'vue3-easy-data-table';
@@ -101,6 +101,7 @@ import { Header } from 'vue3-easy-data-table';
 const { t, locale } = useI18n();
 const router = useRouter();
 const toast = useToast();
+const { toggleTheme } = useTheme();
 const userStore = useUserStore();
 const getConnectedUser = useConnectedUser();
 
@@ -119,7 +120,6 @@ const valueLang = ref({
   lang: localStorage.getItem('lang') || 'Français',
 });
 
-const darkMode: Ref<boolean> = ref(true);
 const tokenListDisplayed = ref(false);
 const tokens: Ref<Token[]> = ref([]);
 const headers: Header[] = [
@@ -152,16 +152,6 @@ const tokenReturned = computed(() => {
     createdAt: formatDate(token.createdAt),
   }));
 });
-
-watch(
-  darkMode,
-  (value) => {
-    const htmlElement = document.documentElement;
-    localStorage.setItem('theme', value ? 'dark' : 'light');
-    htmlElement.setAttribute('theme', value ? 'dark' : 'light');
-  },
-  { immediate: true },
-);
 
 function switchLanguage() {
   if (!valueLang.value) return;

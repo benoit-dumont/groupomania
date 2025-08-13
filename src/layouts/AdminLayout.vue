@@ -4,7 +4,7 @@
       <div class="side">
         <div class="side-container">
           <router-link :to="{ name: 'Accueil' }">
-            <img :src="getImage()" alt="Logo Groupomania" />
+            <img :src="logoSrc" alt="Logo Groupomania" />
           </router-link>
           <div class="icons">
             <router-link
@@ -66,7 +66,8 @@ import { Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useUserStore } from '@/stores/';
-import { getImage } from '@/utils';
+import { useTheme } from '@/composables/useTheme';
+const { logoSrc } = useTheme();
 
 const userStore = useUserStore();
 const { t } = useI18n();

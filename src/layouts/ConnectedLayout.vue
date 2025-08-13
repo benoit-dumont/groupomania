@@ -3,7 +3,7 @@
     <div class="content">
       <div class="sidebar">
         <div class="icons">
-          <img :src="getImage()" alt="Logo" />
+          <img :src="logoSrc" alt="Logo" />
           <div class="icon-container">
             <router-link :to="{ name: 'Accueil' }"><i class="fas fa-home"></i></router-link>
             <router-link
@@ -51,11 +51,12 @@
 import { Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { useTheme } from '@/composables/useTheme';
 import { useUserStore } from '@/stores/';
-import { getImage } from '@/utils';
 
 const userStore = useUserStore();
 const { t } = useI18n();
+const { logoSrc } = useTheme();
 
 const menuDisplayed: Ref<boolean> = ref(false);
 </script>
