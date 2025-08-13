@@ -28,10 +28,8 @@
             </div>
           </div>
           <div class="post-actions">
-            <div class="update" @click="updatePost(id)">
-              <i class="fa fa-pencil"></i>
-            </div>
-            <deleteAction :data="id" />
+            <ModifyAction :data="id" />
+            <DeleteAction :data="id" />
           </div>
         </div>
       </div>
@@ -46,7 +44,8 @@ import { useHead } from '@vueuse/head';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
-import deleteAction from '../components/DeleteAction.vue';
+import DeleteAction from '../components/DeleteAction.vue';
+import ModifyAction from '../components/ModifyAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Post } from '@/types';
@@ -78,7 +77,8 @@ const objectUrlMap = new Map<File, string>();
 
 onMounted(async () => {
   await getConnectedUser();
-  EventBus.on('deleteActionPressed', (_payload) => deletePost);
+  EventBus.on('modifyActionPressed', (_payload: number) => updatePost);
+  EventBus.on('deleteActionPressed', (_payload: number) => deletePost);
   getPosts();
 });
 

@@ -8,7 +8,7 @@
 import EventBus from '../EventBus';
 
 const props = defineProps<{
-  data: number;
+  data: any;
 }>();
 function emitEvent() {
   EventBus.emit('deleteActionPressed', props.data);

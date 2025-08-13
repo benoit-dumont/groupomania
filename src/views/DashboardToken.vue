@@ -11,7 +11,7 @@
         :per-page="5"
       >
         <template #revoke="{ row }">
-          <deleteAction :data="row.id" />
+          <DeleteAction :data="row.id" />
         </template>
       </EasyDataTable>
     </div>

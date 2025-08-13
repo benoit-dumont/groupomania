@@ -32,10 +32,8 @@
         "
         class="post-actions"
       >
-        <div class="update" @click="updatePost(post.id)">
-          <i class="fa fa-pencil"></i>
-        </div>
-        <deleteAction :data="post.id" />
+        <ModifyAction :data="post" />
+        <DeleteAction :data="post" />
       </div>
       <div class="reactions">
         <h3>Réactions :</h3>
@@ -72,10 +70,8 @@
           "
           class="comment-actions"
         >
-          <div class="update" @click="updateComment(comment.id)">
-            <i class="fa fa-pencil"></i>
-          </div>
-          <deleteAction :data="comment.id" />
+          <ModifyAction :data="comment" />
+          <DeleteAction :data="comment" />
         </div>
       </li>
     </ul>
@@ -92,7 +88,8 @@ import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
-import deleteAction from '../components/DeleteAction.vue';
+import ModifyAction from '../components/ModifyAction.vue';
+import DeleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { formatDate } from '@/utils';
@@ -142,6 +139,7 @@ const supportedExtensions = ref({
 
 onMounted(async () => {
   await getConnectedUser();
+  EventBus.on('modifyActionPressed', (_payload) => updateResource);
   EventBus.on('deleteActionPressed', (_payload) => deleteResource);
   fetchPostData();
 });
@@ -203,7 +201,7 @@ function updatePost(id: Post['id']) {
     params: { PostId: id },
   });
 }
-function deletePost({ id }: Post) {
+function deletePost(id: Post['id']) {
   // eslint-disable-next-line no-alert
   const validation = window.confirm('Are you sure you want to delete this post ?');
   if (validation === true) {
@@ -228,7 +226,7 @@ function updateComment(id: Comment['id']) {
     params: { CommentId: id },
   });
 }
-function deleteComment({ id }: Comment) {
+function deleteComment(id: Comment['id']) {
   // eslint-disable-next-line no-alert
   const validation = window.confirm('Are you sure you want to delete this comment ?');
   if (validation === true) {
@@ -247,8 +245,12 @@ function isPost(data: Post | Comment): data is Post {
   return 'Comments' in data;
 }
 
+function updateResource(data: Comment | Post) {
+  isPost(data) ? updatePost(data.id) : updateComment(data.id);
+}
+
 function deleteResource(data: Comment | Post) {
-  isPost(data) ? deletePost(data) : deleteComment(data);
+  isPost(data) ? deletePost(data.id) : deleteComment(data.id);
 }
 
 const reactionTypes: ReactionTypes[] = [

@@ -83,10 +83,8 @@
           "
           class="post-actions"
         >
-          <div class="update" @click="updatePost(id)">
-            <i class="fa fa-pencil"></i>
-          </div>
-          <deleteAction :data="id" />
+          <ModifyAction :data="id" />
+          <DeleteAction :data="id" />
         </div>
         <div class="post-infos">
           <router-link :to="{ name: 'Post', params: { PostId: id } }">
@@ -117,18 +115,18 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
+import ModifyAction from '../components/ModifyAction.vue';
 import DeleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Post } from '@/types';
 import { formatDate } from '@/utils';
-import { useConnectedUser, useToast } from '@/composables';
+import { useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
 const router = useRouter();
 const toast = useToast();
-const getConnectedUser = useConnectedUser();
 
 useHead({
   title: t('ACCUEIL.TITLE'),
@@ -150,9 +148,8 @@ const supportedExtensions = ref({
 });
 const comContent = ref('');
 
-// getConnectedUser();
-
 onMounted(() => {
+  EventBus.on('modifyActionPressed', (payload: number) => updatePost(payload));
   EventBus.on('deleteActionPressed', (payload: number) => deletePost(payload));
   fetchPosts();
 });
@@ -366,6 +363,7 @@ function deletePost(id: Post['id']) {
   border-radius: 30px;
   padding-bottom: 10vh;
   position: relative;
+  border: 1px solid var(--app-background-color);
 }
 
 .posts h1 {
@@ -497,6 +495,7 @@ function deletePost(id: Post['id']) {
   margin: 1vh 0;
   position: relative;
   font-size: 20px;
+  background-color: var(--app-sidebar-color);
 }
 
 .post p {

@@ -98,8 +98,8 @@ const columns: Header[] = [
 
 onMounted(async () => {
   await getConnectedUser();
-  EventBus.on('modifyActionPressed', (_payload) => modifyUser);
-  EventBus.on('deleteActionPressed', (_payload) => deleteUser);
+  EventBus.on('modifyActionPressed', (_payload: number) => modifyUser);
+  EventBus.on('deleteActionPressed', (_payload: number) => deleteUser);
   getUsers();
 });
 

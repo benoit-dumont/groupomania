@@ -19,19 +19,17 @@
             </p>
           </div>
           <div class="comment-actions">
-            <div
-              class="update"
-              @click="
-                () =>
-                  router.push({
-                    name: 'Comment Modification',
-                    params: { CommentId: id },
-                  })
-              "
-            >
-              <i class="fa fa-pencil"></i>
+            <div class="update">
+              <router-link
+                :to="{
+                  name: 'Comment Modification',
+                  params: { CommentId: id },
+                }"
+              >
+                <i class="fa fa-pencil"></i>
+              </router-link>
             </div>
-            <deleteAction :data="id" />
+            <DeleteAction :data="id" />
           </div>
         </div>
       </div>
@@ -42,7 +40,6 @@
 <script setup lang="ts">
 import EventBus from '../EventBus';
 import { Ref, ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
@@ -55,7 +52,6 @@ import { useConnectedUser, useToast } from '@/composables';
 
 const { t } = useI18n();
 const userStore = useUserStore();
-const router = useRouter();
 const toast = useToast();
 const getConnectedUser = useConnectedUser();
 
@@ -73,7 +69,7 @@ const comments: Ref<Comment[]> = ref([]);
 
 onMounted(async () => {
   await getConnectedUser();
-  EventBus.on('deleteActionPressed', (_payload) => deleteComment);
+  EventBus.on('deleteActionPressed', (_payload: number) => deleteComment);
   getComments();
 });
 
@@ -197,6 +193,10 @@ function deleteComment(data: Comment['id']) {
 .update {
   padding: 1vh;
   transition: all 450ms ease-in-out;
+}
+
+.update i {
+  color: var(--app-text-primary-color);
 }
 
 .update :hover {

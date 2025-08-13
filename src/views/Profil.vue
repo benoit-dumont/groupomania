@@ -31,10 +31,8 @@
                 </video>
               </div>
               <div class="post-actions">
-                <div class="update" @click="updatePost(id)">
-                  <i class="fa fa-pencil"></i>
-                </div>
-                <deleteAction :data="id" />
+                <ModifyAction :data="id" />
+                <DeleteAction :data="id" />
               </div>
               <div class="post-infos">
                 <router-link :to="{ name: 'Post', params: { PostId: id } }">
@@ -68,7 +66,8 @@ import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
-import deleteAction from '../components/DeleteAction.vue';
+import ModifyAction from '../components/ModifyAction.vue';
+import DeleteAction from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { Post, UserId } from '@/types';
@@ -100,7 +99,8 @@ const supportedExtensions = ref({
 
 onMounted(async () => {
   await getConnectedUser();
-  EventBus.on('deleteActionPressed', (_payload) => deletePost);
+  EventBus.on('modifyActionPressed', (_payload: number) => updatePost);
+  EventBus.on('deleteActionPressed', (_payload: number) => deletePost);
   getPosts();
 });
 
@@ -277,6 +277,7 @@ onBeforeUnmount(() => {
   padding: 4vh 0 0 4vh;
   position: relative;
   font-size: 20px;
+  background-color: var(--app-sidebar-color);
 }
 
 .post-content {
@@ -301,6 +302,7 @@ onBeforeUnmount(() => {
   position: absolute;
   right: 4vh;
   top: 2vh;
+  gap: 1vh;
 }
 
 .update {

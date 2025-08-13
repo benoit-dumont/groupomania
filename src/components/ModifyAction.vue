@@ -1,5 +1,5 @@
 <template>
-  <div class="component-modify" @click="() => EventBus.emit('modifyActionPressed', props.data)">
+  <div class="component-modify" @click="emitEvent">
     <i class="fa fa-pencil"></i>
   </div>
 </template>
@@ -8,8 +8,12 @@
 import EventBus from '../EventBus';
 
 const props = defineProps<{
-  data: number;
+  data: any;
 }>();
+
+function emitEvent() {
+  EventBus.emit('modifyActionPressed', props.data);
+}
 </script>
 
 <style>
