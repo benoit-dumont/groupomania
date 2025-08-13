@@ -163,18 +163,15 @@ const router = createRouter({
 // Guard pour l'authentification
 router.beforeEach(
   (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-    if (!to.meta.auth) {
-      return next();
-    }
+    if (!to.meta.auth) return next();
     const userStore = useUserStore();
     const tokenData: TokenData | null = userStore.token;
-
     if (!tokenData) {
       return next({ name: 'Login' });
     }
 
     // Exemple d'expiration token (suppose que tokenData.time est timestamp)
-    if ('time' in tokenData && tokenData.time && Date.now() > Number(tokenData.time) + 86400000) {
+    if ('date' in tokenData && Date.now() > Number(tokenData.date) + 86400000) {
       return next({ name: 'Login' });
     }
 
