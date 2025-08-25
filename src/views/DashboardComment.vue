@@ -98,7 +98,7 @@ function deleteComment(data: Comment['id']) {
     fetch(`http://localhost:3000/api/comment/${data}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer:' ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     }).then(() => getComments());
@@ -111,7 +111,17 @@ function deleteComment(data: Comment['id']) {
   background-color: var(--app-background-color);
   width: 100%;
   color: var(--app-text-primary-color);
-  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.middle-container {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: calc(100% + 20px);
+  height: 100%;
+  padding-bottom: 10vh;
+  position: relative;
 }
 
 .middle-container h1 {
@@ -122,6 +132,7 @@ function deleteComment(data: Comment['id']) {
   display: inline-flex;
   flex-wrap: wrap;
   width: 100%;
+  padding: 0 5vh;
 }
 
 .comment-content {
@@ -137,7 +148,7 @@ function deleteComment(data: Comment['id']) {
 .comment {
   display: inline-flex;
   flex-direction: column;
-  margin: 2.5vh 2.5vh 2.5vh 5vh;
+  margin: 2.5vh 0;
   padding: 2vh;
   border: 1px solid var(--app-text-primary-color);
   border-radius: 20px;

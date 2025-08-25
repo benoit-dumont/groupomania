@@ -138,7 +138,7 @@ function deletePost(id: Post['id']) {
     fetch(`http://localhost:3000/api/post/${id}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer:' ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     }).then(() => {

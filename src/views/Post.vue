@@ -274,14 +274,12 @@ const reactionTypes: ReactionTypes[] = [
   },
 ];
 
-// Fonctions utilitaires pour calculer les réactions
 const getReactionsByType = (type: ReactionTypes['type']) =>
   post.value.Reactions.filter((r) => r.type === type);
 
 const getHasReactedTo = (type: ReactionTypes['type']) =>
   post.value.Reactions.find((r) => r.type === type && r.UserId === +userStore.connectedUser!.id);
 
-// Construction de la liste dynamique pour la boucle dans le template
 const reactionsList = computed(() =>
   reactionTypes.map((rt) => {
     const reactions = getReactionsByType(rt.type);
@@ -295,7 +293,6 @@ const reactionsList = computed(() =>
   }),
 );
 
-// Méthodes à adapter selon ton implémentation
 const addReaction = (type: ReactionTypes['type']) => {
   const token = userStore.token!.token;
   fetch(`http://localhost:3000/api/reaction/`, {
@@ -306,7 +303,7 @@ const addReaction = (type: ReactionTypes['type']) => {
     },
     body: JSON.stringify({
       PostId: +route.params.PostId,
-      type,
+      type: Number(type),
     }),
   })
     .then((response) => response.json())
@@ -350,7 +347,7 @@ const updateReaction = (id: Reaction['id'], type: ReactionTypes['type']) => {
     },
     body: JSON.stringify({
       PostId: +route.params.PostId,
-      type,
+      type: Number(type),
     }),
   })
     .then((response) => response.json())
@@ -363,7 +360,6 @@ const updateReaction = (id: Reaction['id'], type: ReactionTypes['type']) => {
     });
 };
 
-// Fonction de gestion du clic
 const toggleReaction = (type: ReactionTypes['type']) => {
   const current = post.value.Reactions.find((r) => r.UserId === userStore.connectedUser!.id);
   if (!current) return addReaction(type);
@@ -521,26 +517,23 @@ const toggleReaction = (type: ReactionTypes['type']) => {
 
 .likes-off i,
 .dislikes-off i,
-.loves-off i {
-  padding: 1vh;
+.loves-off i,
+.likes-on i,
+.dislikes-on i,
+.loves-on i {
+  padding-right: 1vh;
   font-size: large;
 }
 
 .likes-on i {
-  padding: 1vh;
-  font-size: large;
   color: green;
 }
 
 .dislikes-on i {
-  padding: 1vh;
-  font-size: large;
   color: red;
 }
 
 .loves-on i {
-  padding: 1vh;
-  font-size: large;
   color: red;
 }
 

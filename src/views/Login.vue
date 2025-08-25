@@ -10,7 +10,7 @@
             v-model="identifiant"
             type="text"
             name="identifiant"
-            :placeholder="t('LOGIN.USERNAMEEMAILPLACEHOLDER', 'example@groupomania.fr')"
+            :placeholder="t('LOGIN.USERNAMEEMAILPLACEHOLDER', { email: 'example@groupomania.fr' })"
           />
           <label>{{ t('LOGIN.PASSWORDLABEL') }} *</label>
           <input
@@ -157,7 +157,6 @@ async function submit() {
 .content-login img {
   max-width: 350px;
   width: 100%;
-  height: 150px;
   object-fit: cover;
   padding: 2vh;
 }

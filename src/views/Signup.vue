@@ -44,7 +44,7 @@
             v-model="email"
             type="email"
             name="email"
-            :placeholder="t('SIGNUP.EMAILPLACEHOLDER')"
+            :placeholder="t('SIGNUP.EMAILPLACEHOLDER', { email: 'example@groupomania.fr' })"
             :pattern="patternEmailString"
           />
         </div>
@@ -266,7 +266,6 @@ function tempStoreImage(e: Event) {
 .content-signup img {
   max-width: 350px;
   width: 100%;
-  height: 150px;
   object-fit: cover;
   padding: 2vh;
 }
@@ -370,7 +369,6 @@ button {
 
 .champ i {
   font-size: 24px;
-  padding: 1vh;
 }
 
 .upload {

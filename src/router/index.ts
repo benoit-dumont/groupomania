@@ -160,7 +160,6 @@ const router = createRouter({
   routes,
 });
 
-// Guard pour l'authentification
 router.beforeEach(
   (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     if (!to.meta.auth) return next();
@@ -170,7 +169,6 @@ router.beforeEach(
       return next({ name: 'Login' });
     }
 
-    // Exemple d'expiration token (suppose que tokenData.time est timestamp)
     if ('date' in tokenData && Date.now() > Number(tokenData.date) + 86400000) {
       return next({ name: 'Login' });
     }
@@ -187,7 +185,6 @@ router.beforeEach((to, from, next) => {
   next();
 });
 
-// Guard pour les droits (ownership & rank)
 router.beforeEach(
   async (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
     if (!to.meta.rights) {

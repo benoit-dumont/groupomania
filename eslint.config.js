@@ -20,7 +20,6 @@ export default [
     },
     rules: {
       // règles TS/JS ici
-      // ex:
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
     },
@@ -43,7 +42,6 @@ export default [
     },
     rules: {
       ...vueRecommendedConfig.rules,
-      // Ajoute ou surcharge ici des règles Vue si besoin
     },
   },
 ];

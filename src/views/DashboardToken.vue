@@ -9,8 +9,9 @@
         :sortable="true"
         :pagination="true"
         :per-page="5"
+        table-class-name="customize-table"
       >
-        <template #revoke="{ row }">
+        <template #item-revoke="row">
           <DeleteAction :data="row.id" />
         </template>
       </EasyDataTable>
@@ -94,7 +95,7 @@ function getTokens() {
   fetch('http://localhost:3000/api/token/', {
     method: 'GET',
     headers: {
-      Authorization: `Bearer:' ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   })
@@ -113,7 +114,7 @@ function revokeToken(id: Token['id']) {
     fetch(`http://localhost:3000/api/token/${id}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer:' ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     }).then(() => getTokens());
@@ -122,11 +123,33 @@ function revokeToken(id: Token['id']) {
 </script>
 
 <style scoped lang="scss">
+.customize-table {
+  --easy-table-border: 1px solid var(--app-background-color);
+  --easy-table-body-row-background-color: var(--app-background-color);
+  --easy-table-header-background-color: var(--app-background-color);
+  --easy-table-header-font-color: var(--app-text-primary-color);
+  --easy-table-body-row-font-color: var(--app-text-primary-color);
+  --easy-table-scrollbar-color: var(--app-sidebar-color);
+  --easy-table-footer-background-color: var(--app-background-color);
+  --easy-table-footer-font-color: var(--app-text-primary-color);
+  padding: 0 5vh 5vh 5vh;
+}
+
 .middle {
   background-color: var(--app-background-color);
   width: 100%;
   color: var(--app-text-primary-color);
-  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.middle-container {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: calc(100% + 20px);
+  height: 100%;
+  padding-bottom: 10vh;
+  position: relative;
 }
 
 .middle-container h1 {

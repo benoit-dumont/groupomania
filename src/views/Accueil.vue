@@ -53,19 +53,25 @@
           </router-link>
           <div v-if="media && isImage(media)" class="post-image">
             <router-link :to="{ name: 'Post', params: { PostId: id } }">
-              <img :src="media.toString()" :alt="t('ALTMEDIA')" />
+              <img
+                :src="currentObjectUrl ?? (typeof media === 'string' ? media : '')"
+                :alt="t('ALTMEDIA')"
+              />
             </router-link>
           </div>
 
           <div v-if="media && isVideo(media)" class="post-video">
             <video controls width="350" height="200">
-              <source :src="media.toString()" type="video/mp4" />
+              <source
+                :src="currentObjectUrl ?? (typeof media === 'string' ? media : '')"
+                type="video/mp4"
+              />
             </video>
           </div>
           <div class="comments">
             <form class="form-add-comment" @submit.prevent="createComment(id)">
               <input
-                v-model="comContent"
+                v-model="comContent[id]"
                 type="text"
                 name="comContent"
                 class="comment-content"
@@ -110,7 +116,7 @@
 
 <script setup lang="ts">
 import EventBus from '../EventBus';
-import { ref, onMounted, Ref, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, Ref, onBeforeUnmount, watch, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
@@ -146,7 +152,12 @@ const supportedExtensions = ref({
   image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
   video: ['mp4', 'avi'],
 });
-const comContent = ref('');
+const comContent = reactive<CommentContent>({});
+const currentObjectUrl = ref<string | null>(null);
+
+interface CommentContent {
+  [id: number]: string;
+}
 
 onMounted(() => {
   EventBus.on('modifyActionPressed', (payload: number) => updatePost(payload));
@@ -237,9 +248,10 @@ async function submit() {
 }
 
 function createComment(data: Post['id']) {
+  console.log(data);
   const regexContent =
     /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
-  if (!regexContent.test(comContent.value)) {
+  if (!regexContent.test(comContent[data])) {
     return toast.error(t('COMMENT.CONTENT.FORMAT'));
   }
   const token = userStore.token!.token;
@@ -250,7 +262,7 @@ function createComment(data: Post['id']) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      content: comContent.value,
+      content: comContent[data],
       PostId: data,
     }),
   })
@@ -295,22 +307,22 @@ function isVideo(media: Post['media']): boolean {
   return supportedExtensions.value.video.includes(ext);
 }
 
-// Pour éviter les fuites mémoire, on révoque l’URL quand le media change
-let currentObjectUrl: string | null = null;
-watch(media, (newVal, oldVal) => {
-  if (currentObjectUrl) {
-    URL.revokeObjectURL(currentObjectUrl);
-    currentObjectUrl = null;
-  }
-  if (newVal instanceof File) {
-    currentObjectUrl = URL.createObjectURL(newVal);
-  }
-});
+watch(
+  () => media,
+  (newMedia) => {
+    if (currentObjectUrl.value) {
+      URL.revokeObjectURL(currentObjectUrl.value);
+      currentObjectUrl.value = null;
+    }
+
+    if (newMedia instanceof File) {
+      currentObjectUrl.value = URL.createObjectURL(newMedia);
+    }
+  },
+);
 
 onBeforeUnmount(() => {
-  if (currentObjectUrl) {
-    URL.revokeObjectURL(currentObjectUrl);
-  }
+  if (currentObjectUrl.value) URL.revokeObjectURL(currentObjectUrl.value);
 });
 
 function updatePost(id: Post['id']) {
@@ -327,7 +339,7 @@ function deletePost(id: Post['id']) {
     fetch(`http://localhost:3000/api/post/${id}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer:' ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     }).then(() => fetchPosts());
@@ -437,6 +449,7 @@ function deletePost(id: Post['id']) {
   height: 42px;
   width: 100%;
   color: var(--app-text-primary-color);
+  font-family: Nunito, sans-serif;
 }
 
 .posts form input:focus-visible {
@@ -469,6 +482,7 @@ function deletePost(id: Post['id']) {
   right: 4vh;
   top: 2vh;
   color: var(--app-text-primary-color);
+  gap: 1vh;
 }
 
 .post-infos {
