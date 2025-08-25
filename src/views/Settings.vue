@@ -9,26 +9,26 @@
       <div class="params">
         <Multiselect
           v-model="valueLang"
-          class="multiselect"
-          :placeholder="$t('SETTINGS.LANGOPTIONPLACEHOLDER')"
+          :options="langOptions"
+          track-by="value"
           label="lang"
-          track-by="lang"
-          :options="[
-            { flag: 'fi-fr', lang: 'Français' },
-            { flag: 'fi-us', lang: 'English' },
-          ]"
-          :option-height="2"
+          :placeholder="$t('SETTINGS.LANGOPTIONPLACEHOLDER')"
           :show-labels="false"
-          @input="switchLanguage"
+          :option-height="40"
+          @update:model-value="() => switchLanguage(valueLang)"
         >
-          <template #singleLabel="{ option }">
-            <span class="fi" :class="option.flag"></span>
-            - <span class="colored">{{ option.lang }}</span>
+          <!-- Dropdown options -->
+          <template #option="{ option, active, selected }">
+            <div :class="['option-item', { 'option-hover': active, 'option-selected': selected }]">
+              <span class="fi" :class="option.flag" style="margin-right: 8px"></span>
+              <span class="colored">{{ option.lang }}</span>
+            </div>
           </template>
 
-          <template #option="{ option }">
-            <span class="fi" :class="option.flag"></span>
-            - <span class="colored">{{ option.lang }}</span>
+          <!-- Selected value -->
+          <template #value="{ selected }">
+            <span class="fi" :class="selected.flag" style="margin-right: 8px"></span>
+            <span class="colored">{{ selected.lang }}</span>
           </template>
         </Multiselect>
       </div>
@@ -70,7 +70,7 @@
           @click="() => (tokenListDisplayed = !tokenListDisplayed)"
         ></i>
         <EasyDataTable :headers="headers" :items="tokenReturned" table-class-name="customize-table">
-          <template #token="{ row }">
+          <template #item-token="row">
             <div class="token-style">{{ row.token }}</div>
           </template>
         </EasyDataTable>
@@ -87,13 +87,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, Ref, ref, watch } from 'vue';
+import { computed, onMounted, Ref, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
 import { Token } from '@/types';
 import { formatDate } from '@/utils';
-import { useToast, useConnectedUser, useTheme } from '@/composables';
+import {
+  useToast,
+  useConnectedUser,
+  useTheme,
+  useLanguage,
+  langOptions,
+  savedLang,
+} from '@/composables';
 import { useUserStore } from '@/stores';
 import { useRouter } from 'vue-router';
 import { Header } from 'vue3-easy-data-table';
@@ -104,6 +111,7 @@ const toast = useToast();
 const { toggleTheme } = useTheme();
 const userStore = useUserStore();
 const getConnectedUser = useConnectedUser();
+const { switchLanguage } = useLanguage();
 
 useHead({
   title: t('SETTINGS.TITLE'),
@@ -115,10 +123,7 @@ useHead({
   ],
 });
 
-const valueLang = ref({
-  flag: localStorage.getItem('lang') === 'English' ? 'fi-us' : 'fi-fr',
-  lang: localStorage.getItem('lang') || 'Français',
-});
+const valueLang = ref(langOptions.find((l) => l.value === locale.value) || null);
 
 const tokenListDisplayed = ref(false);
 const tokens: Ref<Token[]> = ref([]);
@@ -152,12 +157,6 @@ const tokenReturned = computed(() => {
     createdAt: formatDate(token.createdAt),
   }));
 });
-
-function switchLanguage() {
-  if (!valueLang.value) return;
-  localStorage.setItem('lang', valueLang.value.lang);
-  locale.value = valueLang.value.lang === 'Français' ? 'fr' : 'en';
-}
 
 function toggleMaxSecurity() {
   const token = userStore.token!.token;
@@ -267,8 +266,10 @@ function deleteUser() {
 
 .history-token i {
   position: absolute;
-  right: 4vh;
+  right: 0;
+  top: 0;
   font-size: x-large;
+  z-index: 999;
 }
 
 .history p {
@@ -300,7 +301,7 @@ function deleteUser() {
 
 .colored {
   vertical-align: middle;
-  color: var(--app-text-primary-color);
+  color: var(--app-background-color) !important;
 }
 
 .lang > .params {
@@ -377,6 +378,11 @@ function deleteUser() {
 .colors input:checked + label::after {
   left: calc(100% - 5px);
   transform: translateX(-100%);
+}
+
+.multiselect {
+  color: var(--app-text-primary-color) !important;
+  background-color: var(--app-sidebar-color);
 }
 
 @media (max-width: 700px) {

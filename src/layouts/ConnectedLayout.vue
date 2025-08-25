@@ -85,7 +85,6 @@ const menuDisplayed: Ref<boolean> = ref(false);
 
 .icons i {
   font-size: 32px;
-  padding: 1vh;
 }
 
 .icons a {
@@ -158,6 +157,12 @@ const menuDisplayed: Ref<boolean> = ref(false);
   border-bottom-right-radius: 15px;
   transform: translateY(100%);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.logout {
+  margin: 0;
 }
 
 .logout i {

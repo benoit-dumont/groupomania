@@ -55,8 +55,8 @@
             <i v-else class="fas fa-sort-up" @click="() => (menuDisplayed = !menuDisplayed)"></i>
           </div>
         </div>
+        <slot />
       </div>
-      <slot />
     </div>
   </div>
 </template>
@@ -83,6 +83,9 @@ const menuDisplayed: Ref<boolean> = ref(false);
 }
 .side {
   flex-shrink: 2;
+  display: inline-flex;
+  height: 100vh;
+  width: 100%;
 }
 
 .side-container {

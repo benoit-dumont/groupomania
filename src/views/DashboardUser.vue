@@ -2,12 +2,12 @@
   <div class="middle">
     <div class="middle-container">
       <h1>{{ t('DASHBOARDUSER.TITLE') }}</h1>
-      <EasyDataTable :headers="columns" :items="userReturned">
-        <template #modify="{ row }">
-          <modifyActionAdmin :data="row.id" />
+      <EasyDataTable :headers="columns" :items="userReturned" table-class-name="customize-table">
+        <template #item-modify="row">
+          <ModifyActionAdmin :data="row.id" />
         </template>
-        <template #delete="{ row }">
-          <deleteActionAdmin :data="row.id" />
+        <template #item-delete="row">
+          <DeleteActionAdmin :data="row.id" />
         </template>
       </EasyDataTable>
     </div>
@@ -21,8 +21,8 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useHead } from '@vueuse/head';
 
-import modifyActionAdmin from '../components/ModifyAction.vue';
-import deleteActionAdmin from '../components/DeleteAction.vue';
+import ModifyActionAdmin from '../components/ModifyAction.vue';
+import DeleteActionAdmin from '../components/DeleteAction.vue';
 
 import { useUserStore } from '@/stores/';
 import { User } from '@/types';
@@ -108,7 +108,7 @@ function getUsers() {
   fetch('http://localhost:3000/api/user/', {
     method: 'GET',
     headers: {
-      Authorization: `Bearer:' ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   })
@@ -136,7 +136,7 @@ function deleteUser(id: User['id']) {
     fetch(`http://localhost:3000/api/user/${id}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer:' ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     }).then(() => getUsers());
@@ -158,16 +158,34 @@ const userReturned = computed(() => {
 </script>
 
 <style scoped lang="scss">
+.customize-table {
+  --easy-table-border: 1px solid var(--app-background-color);
+  --easy-table-body-row-background-color: var(--app-background-color);
+  --easy-table-header-background-color: var(--app-background-color);
+  --easy-table-header-font-color: var(--app-text-primary-color);
+  --easy-table-body-row-font-color: var(--app-text-primary-color);
+  --easy-table-scrollbar-color: var(--app-sidebar-color);
+  --easy-table-footer-background-color: var(--app-background-color);
+  --easy-table-footer-font-color: var(--app-text-primary-color);
+  padding: 0 5vh 5vh 5vh;
+}
+
 .middle {
+  background-color: var(--app-background-color);
   width: 100%;
+  color: var(--app-text-primary-color);
+  overflow: hidden;
+  position: relative;
 }
 
 .middle-container {
-  background-color: var(--app-background-color);
-  width: 100%;
-  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: calc(100% + 20px);
+  height: 100%;
+  padding-bottom: 10vh;
+  position: relative;
 }
-
 .middle-container h1 {
   padding: 5vh 0 0 5vh;
   color: var(--app-text-primary-color);
@@ -233,6 +251,11 @@ const userReturned = computed(() => {
   transform: scale(1.11);
   color: red;
 }
+
+.center {
+  text-align: center !important;
+}
+
 @media (max-width: 700px) {
   .data {
     justify-content: center;
