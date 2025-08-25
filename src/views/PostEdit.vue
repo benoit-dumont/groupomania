@@ -1,406 +1,229 @@
 <template>
-  <div class="test">
-    <div class="content">
-      <div class="sidebar">
-        <div class="icons">
-          <img :src="this.getImage()" alt="Logo" />
-          <div class="icon-container">
-            <router-link :to="{ name: 'Accueil' }"
-              ><i class="fas fa-home"></i
-            ></router-link>
-            <router-link
-              :to="{
-                name: 'Profil',
-                params: { UserId: $store.state.connectedUser.id },
-              }"
-              ><i class="fas fa-user"></i
-            ></router-link>
-            <router-link :to="{ name: 'Settings' }"
-              ><i class="fas fa-cog"></i
-            ></router-link>
-            <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
-              :to="{ name: 'Home Dashboard' }"
-              ><i class="fas fa-tools"></i
-            ></router-link>
-          </div>
-        </div>
-        <div class="box-posts">
-          <div class="up">
-            <div class="account">
-              <img
-                :src="$store.state.connectedUser.avatar"
-                :alt="$t('ALTIMAGEPROFILE')"
-              />
-              <i
-                @click="toggleLogout()"
-                v-if="this.menuDisplayed === false"
-                class="fas fa-sort-down"
-              ></i>
-              <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
+  <div class="update">
+    <h1>{{ t('POSTEDIT.TITLE') }}</h1>
+    <div class="update-container">
+      <div class="media">
+        <label for="post-image" class="design">
+          <div class="message">
+            <div v-if="mediaUrl && isImage(mediaUrl)" class="post-image">
+              <img :src="mediaUrl" :alt="t('ALTMEDIA')" />
             </div>
-            <transition name="logout">
-              <div class="logout" v-if="this.menuDisplayed === true">
-                <p @click="$store.dispatch('logout')">
-                  <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-                </p>
-              </div>
-            </transition>
-          </div>
-          <div class="update">
-            <h1>{{ $t('POSTEDIT.TITLE') }}</h1>
-            <div class="update-container">
-              <div class="media">
-                <label for="post-image" class="design">
-                  <div class="message">
-                    <div
-                      class="post-image"
-                      v-if="post.media && isImage(post.media)"
-                    >
-                      <img :src="post.media" :alt="$t('ALTMEDIA')" />
-                    </div>
-                    <div
-                      class="post-video"
-                      v-if="post.media && isVideo(post.media)"
-                    >
-                      <video controls width="250">
-                        <source :src="post.media" type="video/mp4" />
-                      </video>
-                    </div>
-                    <p>{{ $t('POSTEDIT.MEDIAOPACITYMESSAGE') }}</p>
-                  </div>
-                  <input
-                    type="file"
-                    id="post-image"
-                    class="upload"
-                    @change="updateMedia"
-                  />
-                </label>
-              </div>
-              <div class="upload-image" v-if="post.media === null">
-                <label for="post-image" class="design"
-                  ><i class="fas fa-upload"></i>
-                  {{ $t('POSTEDIT.MEDIAUPLOAD') }}</label
-                >
-                <input
-                  type="file"
-                  id="post-image"
-                  class="upload"
-                  @change="updateMedia"
-                />
-              </div>
-              <div class="update-form">
-                <form @submit.prevent="submit" class="form-post-edit">
-                  <div class="champ">
-                    <label>{{ $t('POSTEDIT.TITLELABEL') }} *</label>
-                    <br />
-                    <input
-                      type="text"
-                      name="title"
-                      :placeholder="$t('POSTEDIT.TITLEPLACEHOLDER')"
-                      v-model="post.title"
-                      :pattern="patternTitle"
-                    />
-                  </div>
-                  <div class="champ">
-                    <label>{{ $t('POSTEDIT.CONTENTLABEL') }} *</label>
-                    <br />
-                    <textarea
-                      name="content"
-                      :placeholder="$t('POSTEDIT.CONTENTPLACEHOLDER')"
-                      v-model="post.content"
-                      :pattern="patternContent"
-                    ></textarea>
-                  </div>
-                  <br />
-                  <input
-                    type="submit"
-                    name="submit"
-                    :value="$t('POSTEDIT.SUBMITBUTTON')"
-                    class="btn"
-                  />
-                </form>
-              </div>
+            <div v-if="mediaUrl && isVideo(mediaUrl)" class="post-video">
+              <video controls width="250">
+                <source :src="mediaUrl" type="video/mp4" />
+              </video>
             </div>
+            <p>{{ t('POSTEDIT.MEDIAOPACITYMESSAGE') }}</p>
           </div>
-        </div>
+          <input id="post-image" type="file" class="upload" @change="updateMedia" />
+        </label>
+      </div>
+      <div v-if="post.media === null" class="upload-image">
+        <label for="post-image" class="design"
+          ><i class="fas fa-upload"></i> {{ t('POSTEDIT.MEDIAUPLOAD') }}</label
+        >
+        <input id="post-image" type="file" class="upload" @change="updateMedia" />
+      </div>
+      <div class="update-form">
+        <form class="form-post-edit" @submit.prevent="submit">
+          <div class="champ">
+            <label>{{ t('POSTEDIT.TITLELABEL') }} *</label>
+            <br />
+            <input
+              v-model="post.title"
+              type="text"
+              name="title"
+              :placeholder="t('POSTEDIT.TITLEPLACEHOLDER')"
+              :pattern="patternTitleString"
+            />
+          </div>
+          <div class="champ">
+            <label>{{ t('POSTEDIT.CONTENTLABEL') }} *</label>
+            <br />
+            <textarea
+              v-model="post.content"
+              name="content"
+              :placeholder="t('POSTEDIT.CONTENTPLACEHOLDER')"
+              :pattern="patternContentString"
+            ></textarea>
+          </div>
+          <br />
+          <input type="submit" name="submit" :value="t('POSTEDIT.SUBMITBUTTON')" class="btn" />
+        </form>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import LogoBlack from '../assets/logo_black.png';
-import LogoWhite from '../assets/logo_white.png';
+<script setup lang="ts">
+import { onMounted, Ref, ref, computed, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
+import { useRoute, useRouter } from 'vue-router';
 
-export default {
-  name: 'Accueil',
-  metaInfo() {
-    const title = this.$t('POSTEDIT.TITLE');
-    return {
-      title,
-    };
+import { useUserStore } from '@/stores/';
+import { Post } from '@/types';
+import { useToast } from '@/composables';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
+
+useHead({
+  title: t('POSTEDIT.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page de modification du post du site Groupomania',
+    },
+  ],
+});
+
+const patternTitleString = ref(
+  '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?\'"! _\\-]{2,15}',
+);
+const patternContentString = ref(
+  '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ\'"?!., _\\-]{4,255}',
+);
+const post: Ref<Post> = ref({
+  id: 0,
+  title: '',
+  content: '',
+  media: null,
+  createdAt: '',
+  updatedAt: '',
+  UserId: 0,
+  User: {
+    id: 0,
+    username: '',
+    avatar: '',
+    name: '',
+    firstname: '',
   },
-  data() {
-    return {
-      patternTitle:
-        '[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?\'"! _-]{2,15}',
-      patternContent:
-        '[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ\'"?!., _-]{4,255}',
-      post: {},
-      supportedExtensions: {
-        image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
-        video: ['mp4', 'avi'],
-      },
-      menuDisplayed: false,
-    };
-  },
-  methods: {
-    fetchPostData() {
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.PostId === 'number' ||
-        this.$route.params.PostId < 0
-      )
-        return;
-      fetch(`http://localhost:3000/api/post/${this.$route.params.PostId}`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer: ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.post = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
+  Reactions: [],
+  Comments: [],
+});
+const supportedExtensions = ref({
+  image: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg'],
+  video: ['mp4', 'avi'],
+});
+
+onMounted(async () => {
+  fetchPostData();
+});
+
+function fetchPostData() {
+  const token = userStore.token!.token;
+  if (+route.params.PostId < 0) return;
+  fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     },
-    updateMedia(e) {
-      const data = new FormData();
-      data.append('media', e.target.files[0]);
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.PostId === 'number' ||
-        this.$route.params.PostId < 0
-      )
-        return;
-      fetch(`http://localhost:3000/api/post/${this.$route.params.PostId}`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: data,
-      }).then(() => this.fetchPostData());
-    },
-    submit() {
-      const regexTitle =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-z0-9àèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ?'"! _-]{2,15}$/;
-      const regexContent =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ'"?!., _-]{4,255}$/;
-      const { title, content } = this.post;
-      if (!regexTitle.test(title) || !regexContent.test(content)) {
-        return false;
-      }
-      const { token } = this.$store.state.token;
-      if (
-        !typeof this.$route.params.PostId === 'number' ||
-        this.$route.params.PostId < 0
-      )
-        return false;
-      return fetch(
-        `http://localhost:3000/api/post/${this.$route.params.PostId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            content,
-          }),
-        },
-      ).then(() => this.fetchPostData());
-    },
-    isImage(media) {
-      if (
-        this.supportedExtensions.image.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    isVideo(media) {
-      if (
-        this.supportedExtensions.video.includes(media.split('.').slice(-1)[0])
-      ) {
-        return true;
-      }
-      return false;
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer: ${token}`,
-        'Content-Type': 'application/json',
-      },
+  })
+    .then((response) => response.json())
+    .then((data: Post) => {
+      post.value = data;
     })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function updateMedia(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (!input.files || input.files.length === 0) return;
+  const file = input.files[0];
+
+  const data = new FormData();
+  data.append('media', file);
+  const token = userStore.token!.token;
+  if (+route.params.PostId < 0) return;
+  fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: data,
+  }).then(() => fetchPostData());
+}
+
+function submit() {
+  const patternTitle = new RegExp(patternTitleString.value);
+  const patternContent = new RegExp(patternContentString.value);
+
+  if (!patternTitle.test(post.value.title) || !patternContent.test(post.value.content)) {
+    return false;
+  }
+  const token = userStore.token!.token;
+  if (+route.params.PostId < 0) return false;
+  return fetch(`http://localhost:3000/api/post/${+route.params.PostId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: post.value.title,
+      content: post.value.content,
+    }),
+  }).then(() => {
+    router.push({ name: 'Accueil' });
+    fetchPostData();
+  });
+}
+
+function getExtension(media: Post['media']): string | null {
+  if (!media) return null;
+
+  if (typeof media === 'string') {
+    return media.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  if (media instanceof File) {
+    return media.name.split('.').pop()?.toLowerCase() ?? null;
+  }
+
+  return null;
+}
+
+function isImage(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.image.includes(ext);
+}
+
+function isVideo(media: Post['media']): boolean {
+  const ext = getExtension(media);
+  if (!ext) return false;
+  return supportedExtensions.value.video.includes(ext);
+}
+
+const mediaUrl = computed(() => {
+  if (!post.value.media) return '';
+  if (typeof post.value.media === 'string') return post.value.media;
+  return URL.createObjectURL(post.value.media);
+});
+
+let currentObjectUrl: string | null = null;
+watch(
+  () => post.value.media,
+  (newVal, oldVal) => {
+    if (currentObjectUrl) {
+      URL.revokeObjectURL(currentObjectUrl);
+      currentObjectUrl = null;
+    }
+    if (newVal instanceof File) {
+      currentObjectUrl = URL.createObjectURL(newVal);
+    }
   },
-  mounted() {
-    this.fetchPostData();
-  },
-};
+);
 </script>
 
 <style scoped lang="scss">
-.content {
-  background-color: var(--app-background-color);
-  display: flex;
-}
-
-.content-container {
-  display: flex;
-  justify-content: space-between;
-  background-color: var(--app-background-color);
-  padding-top: 5vh;
-}
-
-.sidebar {
-  background-color: var(--app-sidebar-color);
-  height: 100vh;
-  display: inline-flex;
-  z-index: 99999;
-  width: 100%;
-}
-
-.icons {
-  display: inline-flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: color 450ms ease-in-out;
-  height: 70%;
-}
-
-.icons img {
-  margin: 2vh;
-  width: 85px;
-  height: 85px;
-  object-fit: cover;
-}
-
-.icons i {
-  font-size: 32px;
-  padding: 1vh;
-}
-
-.icons a {
-  transition: color 450ms ease-in-out;
-  color: var(--app-text-primary-color);
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-.icon-container {
-  display: inline-flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: color 450ms ease-in-out;
-  height: 70%;
-}
-
-.up {
-  height: 10vh;
-  display: flex;
-  justify-content: flex-end;
-  padding-right: 4vh;
-  position: relative;
-}
-
-.account {
-  display: inline-flex;
-  align-items: center;
-  color: var(--app-text-primary-color);
-  padding: 2vh;
-}
-
-.account i {
-  padding-left: 1vh;
-  cursor: pointer;
-}
-
-.account img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 30px;
-  border: 1px solid #2d3036;
-}
-
-.logout {
-  height: 5vh;
-  padding: 1.5vh;
-  position: absolute;
-  bottom: 0;
-  background: var(--app-background-color);
-  z-index: 99999;
-  border-bottom-left-radius: 15px;
-  border-bottom-right-radius: 15px;
-  transform: translateY(100%);
-  cursor: pointer;
-}
-
-.logout i {
-  padding: 0.5vh;
-}
-
-.logout p {
-  color: var(--app-text-primary-color);
-}
-
-.logout-enter {
-  opacity: 0.5;
-}
-
-.logout-enter-active {
-  opacity: 1;
-}
-
-.box-posts {
-  overflow: hidden;
-  position: relative;
-  width: 100%;
-}
-
 .update {
   background-color: var(--app-background-color);
   height: 100%;
@@ -497,7 +320,7 @@ export default {
 
 .btn {
   border: 1px solid #a6a6a6;
-  color: var(--app-text-primary-color);
+  color: var(--app-background-color);
   transition: all 450ms ease-in-out;
 }
 
@@ -506,39 +329,6 @@ export default {
   color: var(--app-background-color);
 }
 @media (max-width: 700px) {
-  .sidebar {
-    display: initial;
-  }
-
-  .box-posts {
-    position: initial;
-  }
-
-  .icons {
-    height: initial;
-  }
-
-  .icon-container {
-    flex-direction: row;
-    position: fixed;
-    bottom: 0;
-    height: initial;
-    width: 100%;
-    left: 0;
-    right: 0;
-    padding: 2vh;
-    background: var(--app-sidebar-color);
-    z-index: 9999;
-    margin-top: 5vh;
-  }
-
-  .up {
-    position: absolute;
-    top: 3vh;
-    right: 2vh;
-    padding-right: 0;
-  }
-
   .update {
     border-top-left-radius: 0;
   }
@@ -548,15 +338,6 @@ export default {
     margin: 0;
     padding-top: 2vh;
     padding-bottom: 15vh;
-  }
-
-  .logout {
-    height: 8vh;
-    padding: 0.5vh;
-    width: 100%;
-    text-align: center;
-    bottom: -4vh;
-    right: -2vh;
   }
 }
 </style>

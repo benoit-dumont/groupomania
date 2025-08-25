@@ -1,5 +1,5 @@
 <template>
-  <div class="packages-main" v-if="$store.state.connectedUser.rank === 1">
+  <div v-if="userStore.connectedUser!.rank === 1" class="packages-main">
     <h1>
       {{
         stack === 'back'
@@ -8,7 +8,7 @@
       }}
     </h1>
     <p>{{ $t('DASHBOARDHOME.DEPENDENCIESDESC') }}</p>
-    <div class="packages" v-if="packagesToUpdate === null">
+    <div v-if="packagesToUpdate === null" class="packages">
       <div class="loading-dots">
         <p>{{ $t('DASHBOARDHOME.LOADING') }}</p>
         <div class="loading-dots--dot"></div>
@@ -16,13 +16,13 @@
         <div class="loading-dots--dot"></div>
       </div>
     </div>
-    <div class="packages" v-else>
-      <div class="packages-container" v-if="packagesToUpdate.length !== 0">
+    <div v-else class="packages">
+      <div
+        v-if="Array.isArray(packagesToUpdate) && packagesToUpdate.length !== 0"
+        class="packages-container"
+      >
         <ul>
-          <li
-            v-for="packageToUpdate in packagesToUpdate"
-            :key="packageToUpdate[0]"
-          >
+          <li v-for="packageToUpdate in packagesToUpdate" :key="packageToUpdate[0]">
             <a :href="`https://www.npmjs.com/package/${packageToUpdate[0]}`">{{
               packageToUpdate[0]
             }}</a>
@@ -54,7 +54,17 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+
+import { useUserStore } from '@/stores';
+import { useToast } from '@/composables';
+import { useI18n } from 'vue-i18n';
+
+const userStore = useUserStore();
+const { t } = useI18n();
+const toast = useToast();
+
 import frontPackageJSON from '../../package.json';
 
 const frontPackages = {
@@ -62,114 +72,101 @@ const frontPackages = {
   devDependencies: frontPackageJSON.devDependencies,
 };
 
-export default {
-  name: 'AvailableUpdate',
-  props: {
-    stack: {
-      type: String,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      dependencies: {},
-      devDependencies: {},
-      packagesToUpdate: null,
-    };
-  },
-  async created() {
-    if (this.stack === 'back') {
-      await this.getDependencies();
-      await this.getDevDependencies();
-    } else {
-      this.dependencies = frontPackages.dependencies;
-      this.devDependencies = frontPackages.devDependencies;
-    }
-    this.checkDependenciesUpdate();
-  },
-  methods: {
-    async getDependencies() {
-      const { token } = this.$store.state.token;
-      try {
-        const response = await fetch(
-          'http://localhost:3000/api/config/dependencies',
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer' ${token}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-        const data = await response.json();
-        this.dependencies = data;
-      } catch (error) {
-        this.error = error;
-      }
-    },
-    async getDevDependencies() {
-      const { token } = this.$store.state.token;
-      try {
-        const response = await fetch(
-          'http://localhost:3000/api/config/devdependencies',
-          {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer' ${token}`,
-              'Content-Type': 'application/json',
-            },
-          },
-        );
-        const data = await response.json();
-        this.devDependencies = data;
-      } catch (error) {
-        this.error = error;
-      }
-    },
-    checkDependenciesUpdate() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/config/checkUpdatesDependencies', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          dependencies: this.dependencies,
-          devDependencies: this.devDependencies,
-        }),
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.packagesToUpdate = data;
-        })
-        .catch((error) => {
-          this.error = error;
-        });
-    },
-    getUpdateType(currentVersion, updateVersion) {
-      const currentVersionIterable = currentVersion.split('.');
-      const updateVersionIterable = updateVersion.split('.');
+const props = defineProps<{
+  stack: string;
+}>();
 
-      if (currentVersionIterable[0] !== updateVersionIterable[0]) {
-        return {
-          majorupdate: true,
-        };
-      }
-      if (currentVersionIterable[1] !== updateVersionIterable[1]) {
-        return {
-          minorupdate: true,
-        };
-      }
-      if (currentVersionIterable[2] !== updateVersionIterable[2]) {
-        return {
-          patchupdate: true,
-        };
-      }
-      return {};
-    },
-  },
-};
+const dependencies = ref({});
+const devDependencies = ref({});
+const packagesToUpdate = ref<[string, string, string][] | null>(null);
+
+async function fetchAll() {
+  if (props.stack === 'back') {
+    await getDependencies();
+    await getDevDependencies();
+  } else {
+    dependencies.value = frontPackages.dependencies;
+    devDependencies.value = frontPackages.devDependencies;
+  }
+  await checkDependenciesUpdate();
+}
+
+onMounted(() => {
+  fetchAll();
+});
+
+async function getDependencies() {
+  try {
+    const token = userStore.token!.token;
+    const response = await fetch('http://localhost:3000/api/config/dependencies', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    const data = await response.json();
+    dependencies.value = data;
+  } catch (error) {
+    toast.error(t('ERROR.GENERAL'));
+  }
+}
+
+async function getDevDependencies() {
+  try {
+    const token = userStore.token!.token;
+    const response = await fetch('http://localhost:3000/api/config/devdependencies', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    devDependencies.value = data;
+  } catch (error) {
+    toast.error(t('ERROR.GENERAL'));
+  }
+}
+
+async function checkDependenciesUpdate() {
+  try {
+    const token = userStore.token!.token;
+    const response = await fetch('http://localhost:3000/api/config/checkUpdatesDependencies', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dependencies: dependencies.value,
+        devDependencies: devDependencies.value,
+      }),
+    });
+    const data = await response.json();
+    packagesToUpdate.value = data;
+  } catch (error) {
+    toast.error(`Erreur: ${error}`);
+  }
+}
+
+function getUpdateType(currentVersion: string, updateVersion: string) {
+  const clean = (v: string) => v.replace(/^[\^~]/, '');
+  const [cMaj, cMin, cPatch] = clean(currentVersion).split('.').map(Number);
+  const [uMaj, uMin, uPatch] = clean(updateVersion).split('.').map(Number);
+
+  if (uMaj > cMaj) {
+    return { majorupdate: true };
+  }
+  if (uMin > cMin) {
+    return { minorupdate: true };
+  }
+  if (uPatch > cPatch) {
+    return { patchupdate: true };
+  }
+  return {};
+}
 </script>
 
 <style scoped lang="scss">

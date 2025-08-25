@@ -2,145 +2,140 @@
   <div class="test">
     <div class="content-login">
       <div class="content-login-container">
-        <img :src="this.getImage()" alt="Logo Groupomania" />
-        <h2>{{ $t('LOGIN.TITLE') }}</h2>
+        <img :src="logoSrc" alt="Logo Groupomania" />
+        <h2>{{ t('LOGIN.TITLE') }}</h2>
         <form @submit.prevent="submit">
-          <label>{{ $t('LOGIN.USERNAMEEMAILLABEL') }} *</label>
+          <label>{{ t('LOGIN.USERNAMEEMAILLABEL') }} *</label>
           <input
+            v-model="identifiant"
             type="text"
             name="identifiant"
-            :placeholder="$t('LOGIN.USERNAMEEMAILPLACEHOLDER')"
-            v-model="identifiant"
+            :placeholder="t('LOGIN.USERNAMEEMAILPLACEHOLDER', { email: 'example@groupomania.fr' })"
           />
-          <label>{{ $t('LOGIN.PASSWORDLABEL') }} *</label>
+          <label>{{ t('LOGIN.PASSWORDLABEL') }} *</label>
           <input
+            v-model="password"
             type="password"
             name="password"
-            :placeholder="$t('LOGIN.PASSWORDPLACEHOLDER')"
-            v-model="password"
+            :placeholder="t('LOGIN.PASSWORDPLACEHOLDER')"
             pattern="^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$"
           />
-          <input
-            type="submit"
-            name="submit"
-            :value="$t('LOGIN.SUBMITBUTTON')"
-            class="btn"
-          />
+          <input type="submit" name="submit" :value="t('LOGIN.SUBMITBUTTON')" class="btn" />
         </form>
         <h3>
-          {{ $t('LOGIN.DONTHAVEACCOUNT') }}
-          <router-link :to="{ name: 'Signup' }">{{
-            $t('LOGIN.SWITCHLOGINREGISTER')
-          }}</router-link>
+          {{ t('LOGIN.DONTHAVEACCOUNT') }}
+          <router-link :to="{ name: 'Signup' }">{{ t('LOGIN.SWITCHLOGINREGISTER') }}</router-link>
         </h3>
         <br />
-        <h4>* = {{ $t('LOGIN.REQUIRED') }}</h4>
+        <h4>* = {{ t('LOGIN.REQUIRED') }}</h4>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-import LogoBlack from '../assets/logo_full_black.png';
-import LogoWhite from '../assets/logo_full_white.png';
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useHead } from '@vueuse/head';
+import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
-export default {
-  name: 'Login',
-  metaInfo() {
-    const title = this.$t('LOGIN.TITLE');
-    return {
-      title,
-    };
-  },
-  data() {
-    return {
-      identifiant: '',
-      password: '',
-      user: {},
-    };
-  },
-  methods: {
-    submit() {
-      if (this.identifiant.length === 0) {
-        return this.$vToastify.error(this.$t('LOGIN.IDENTIFIANT.INPUT'));
-      }
-      if (this.password.length === 0) {
-        return this.$vToastify.error(this.$t('PASSWORD.INPUT'));
-      }
-      const regexPassword =
-        /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$/;
+import { useUserStore } from '@/stores/';
+import { useTheme } from '@/composables/useTheme';
 
-      if (!regexPassword.test(this.password)) {
-        return this.$vToastify.error(this.$t('PASSWORD.FORMAT'));
-      }
-      if (this.identifiant.includes('@groupomania.fr')) {
-        const regexEmail = /^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i;
-        if (!regexEmail.test(this.identifiant)) {
-          return this.$vToastify.error(this.$t('EMAIL.FORMAT'));
-        }
-        return fetch('http://localhost:3000/api/user/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email: this.identifiant,
-            password: this.password,
-          }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            this.user = data;
-            const tokenData = {
-              token: data.token,
-              date: Date.now(),
-            };
-            this.$store.dispatch('saveToken', tokenData);
-            setTimeout(() => this.$router.push({ name: 'Accueil' }), 4000);
-            return this.$vToastify.success(this.$t('LOGIN.SUCCESS'));
-          });
-      }
+import { Token } from '@/types';
+import { useToast } from '@/composables';
 
-      fetch('http://localhost:3000/api/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: this.identifiant,
-          password: this.password,
-        }),
-      })
-        .then((response, error) => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw error;
-        })
-        .then((data) => {
-          this.user = data;
-          const tokenData = {
-            token: data.token,
-            date: Date.now(),
-          };
-          this.$store.dispatch('saveToken', tokenData);
-          setTimeout(() => this.$router.push({ name: 'Accueil' }), 4000);
-          return this.$vToastify.success(this.$t('LOGIN.SUCCESS'));
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-      return false;
+const userStore = useUserStore();
+const { t } = useI18n();
+const { logoSrc } = useTheme();
+const router = useRouter();
+const toast = useToast();
+
+useHead({
+  title: t('LOGIN.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page de connexion du site Groupomania',
     },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
+  ],
+});
+
+const identifiant = ref('');
+const password = ref('');
+const user = ref({});
+
+async function submit() {
+  if (identifiant.value.length === 0) {
+    return toast.error(t('LOGIN.IDENTIFIANT.INPUT'));
+  }
+  if (password.value.length === 0) {
+    return toast.error(t('PASSWORD.INPUT'));
+  }
+  const regexPassword = /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$/;
+
+  if (!regexPassword.test(password.value)) {
+    return toast.error(t('PASSWORD.FORMAT'));
+  }
+  if (identifiant.value.includes('@groupomania.fr')) {
+    const regexEmail = /^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i;
+    if (!regexEmail.test(identifiant.value)) {
+      return toast.error(t('EMAIL.FORMAT'));
+    }
+    return await fetch('http://localhost:3000/api/user/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: identifiant.value,
+        password: password.value,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data: Token['token']) => {
+        user.value = data;
+        const tokenData = {
+          token: data,
+          date: Date.now(),
+        };
+        // @ts-ignore
+        userStore.saveToken(tokenData);
+        setTimeout(() => router.push({ name: 'Accueil' }), 4000);
+        return toast.success(t('LOGIN.SUCCESS'));
+      });
+  }
+
+  await fetch('http://localhost:3000/api/user/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  },
-};
+    body: JSON.stringify({
+      username: identifiant.value,
+      password: password.value,
+    }),
+  })
+    .then((response: Response) => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then((data) => {
+      user.value = data;
+      const tokenData = {
+        token: data.token,
+        date: Date.now(),
+      };
+      userStore.saveToken(tokenData);
+      setTimeout(() => router.push({ name: 'Accueil' }), 4000);
+      return toast.success(t('LOGIN.SUCCESS'));
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+  return false;
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -162,7 +157,6 @@ export default {
 .content-login img {
   max-width: 350px;
   width: 100%;
-  height: 150px;
   object-fit: cover;
   padding: 2vh;
 }

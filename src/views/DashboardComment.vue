@@ -1,102 +1,35 @@
 <template>
-  <div class="test">
-    <div class="content">
-      <div class="side">
-        <div class="side-container">
-          <router-link :to="{ name: 'Accueil' }">
-            <p>
-              <img :src="this.getImage()" alt="Logo Groupomania" />
-            </p>
-          </router-link>
-          <div class="icons">
-            <router-link
-              v-if="
-                $store.state.connectedUser.rank === 1 ||
-                $store.state.connectedUser.rank === 2
-              "
-              :to="{ name: 'Home Dashboard' }"
-            >
+  <div class="middle">
+    <div class="middle-container">
+      <h1>{{ t('DASHBOARDCOMMENT.TITLE') }}</h1>
+      <div class="list-comments">
+        <div v-for="{ id, content, User, createdAt } in comments" :key="id" class="comment">
+          <div class="comment-container">
+            <img :src="User!.avatar" :alt="t('ALTIMAGEPROFILE')" />
+            <div class="align">
               <p>
-                <i class="fas fa-home"></i>
-                <span>{{ $t('DASHBOARD.LISTDASHBOARD') }}</span>
+                {{ User!.name }} {{ User!.firstname }} <br />
+                {{ formatDate(createdAt) }}
               </p>
-            </router-link>
-            <router-link
-              v-if="$store.state.connectedUser.rank === 1"
-              :to="{ name: 'User Dashboard' }"
-            >
-              <p>
-                <i class="fas fa-user"></i>
-                <span>{{ $t('DASHBOARD.LISTUSER') }}</span>
-              </p>
-            </router-link>
-            <router-link :to="{ name: 'Post Dashboard' }">
-              <p>
-                <i class="fas fa-comment-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTPOST') }}</span>
-              </p>
-            </router-link>
-            <router-link :to="{ name: 'Comment Dashboard' }">
-              <p>
-                <i class="fas fa-comment"></i>
-                <span>{{ $t('DASHBOARD.LISTCOMMENT') }}</span>
-              </p>
-            </router-link>
-            <router-link
-              v-if="$store.state.connectedUser.rank === 1"
-              :to="{ name: 'Token Dashboard' }"
-            >
-              <p>
-                <i class="fas fa-ticket-alt"></i>
-                <span>{{ $t('DASHBOARD.LISTTOKEN') }}</span>
-              </p>
-            </router-link>
-          </div>
-          <div class="logout" v-if="this.menuDisplayed === true">
-            <p @click="$store.dispatch('logout')">
-              <i class="fas fa-sign-out-alt"></i>{{ $t('LOGOUT') }}
-            </p>
-          </div>
-          <div class="account">
-            <img
-              :src="$store.state.connectedUser.avatar"
-              :alt="$t('ALTIMAGEPROFILE')"
-            />
-            <i
-              @click="toggleLogout()"
-              v-if="this.menuDisplayed === false"
-              class="fas fa-sort-down"
-            ></i>
-            <i @click="toggleLogout()" v-else class="fas fa-sort-up"></i>
-          </div>
-        </div>
-      </div>
-      <div class="middle">
-        <div class="middle-container">
-          <h2>{{ $t('DASHBOARDCOMMENT.TITLE') }}</h2>
-          <div class="list-comments">
-            <div class="comment" v-for="comment in comments" :key="comment.id">
-              <div class="comment-container">
-                <img :src="comment.User.avatar" :alt="$t('ALTIMAGEPROFILE')" />
-                <div class="align">
-                  <p>
-                    {{ comment.User.name }} {{ comment.User.firstname }} <br />
-                    {{ formatDate(comment.createdAt) }}
-                  </p>
-                </div>
-              </div>
-              <div class="comment-content">
-                <p>
-                  {{ comment.content }}
-                </p>
-              </div>
-              <div class="comment-actions">
-                <div class="update" @click="updateComment(comment)">
-                  <i class="fa fa-pencil"></i>
-                </div>
-                <deleteAction :data="comment" />
-              </div>
             </div>
+          </div>
+          <div class="comment-content">
+            <p>
+              {{ content }}
+            </p>
+          </div>
+          <div class="comment-actions">
+            <div class="update">
+              <router-link
+                :to="{
+                  name: 'Comment Modification',
+                  params: { CommentId: id },
+                }"
+              >
+                <i class="fa fa-pencil"></i>
+              </router-link>
+            </div>
+            <DeleteAction :data="id" />
           </div>
         </div>
       </div>
@@ -104,180 +37,94 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
-import deleteAction from '../components/DeleteAction.vue';
-import LogoBlack from '../assets/logo_full_black.png';
-import LogoWhite from '../assets/logo_full_white.png';
+import { Ref, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useHead } from '@vueuse/head';
 
-export default {
-  metaInfo() {
-    const title = this.$t('DASHBOARDCOMMENT.TITLE');
-    return {
-      title,
-    };
-  },
-  components: { deleteAction },
-  data() {
-    return {
-      comments: [],
-      menuDisplayed: false,
-    };
-  },
-  mounted() {
-    EventBus.$on('deleteActionPressed', this.deleteComment);
-    this.getComments();
-  },
-  created() {
-    const { token } = this.$store.state.token;
-    fetch('http://localhost:3000/api/user/me', {
-      method: 'GET',
+import DeleteAction from '../components/DeleteAction.vue';
+
+import { useUserStore } from '@/stores/';
+import { Comment } from '@/types';
+import { formatDate } from '@/utils';
+import { useConnectedUser, useToast } from '@/composables';
+
+const { t } = useI18n();
+const userStore = useUserStore();
+const toast = useToast();
+const getConnectedUser = useConnectedUser();
+
+useHead({
+  title: t('DASHBOARDCOMMENT.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: 'Page du dashboard commentaires du site Groupomania',
+    },
+  ],
+});
+
+const comments: Ref<Comment[]> = ref([]);
+
+onMounted(async () => {
+  await getConnectedUser();
+  EventBus.on('deleteActionPressed', (_payload: number) => deleteComment);
+  getComments();
+});
+
+function getComments() {
+  const token = userStore.token!.token;
+  fetch('http://localhost:3000/api/comment/', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer' ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((response) => response.json())
+    .then((data: Comment[]) => {
+      comments.value = data;
+    })
+    .catch(() => {
+      return toast.error(t('ERROR.GENERAL'));
+    });
+}
+
+function deleteComment(data: Comment['id']) {
+  const validation = window.confirm(t('CONFIRM.COMMENT'));
+  if (validation === true) {
+    const token = userStore.token!.token;
+    fetch(`http://localhost:3000/api/comment/${data}`, {
+      method: 'DELETE',
       headers: {
-        Authorization: `Bearer: ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        this.$store.dispatch('saveConnectedUser', data.user);
-      })
-      .catch(() => {
-        return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-      });
-  },
-  methods: {
-    getComments() {
-      const { token } = this.$store.state.token;
-      fetch('http://localhost:3000/api/comment/', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer' ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          this.comments = data;
-        })
-        .catch(() => {
-          return this.$vToastify.error(this.$t('ERROR.GENERAL'));
-        });
-    },
-    updateComment(comment) {
-      this.$router.push({
-        name: 'Comment Modification',
-        params: { CommentId: comment.id },
-      });
-    },
-    deleteComment(comment) {
-      // eslint-disable-next-line no-alert
-      const validation = window.confirm(this.$t('CONFIRM.COMMENT'));
-      if (validation === true) {
-        const { token } = this.$store.state.token;
-        fetch(`http://localhost:3000/api/comment/${comment.id}`, {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer:' ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }).then(() => this.getComments());
-      }
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-    toggleLogout() {
-      this.menuDisplayed = !this.menuDisplayed;
-    },
-  },
-};
+    }).then(() => getComments());
+  }
+}
 </script>
 
 <style scoped lang="scss">
-.content {
-  background-color: var(--app-background-color);
-  display: flex;
-}
-
-.content-container {
-  display: flex;
-  justify-content: space-between;
-  background-color: #2d3036;
-  padding-top: 5vh;
-}
-
-.side {
-  flex-shrink: 2;
-  background: var(--app-sidebar-color);
-}
-
-.side-container {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.side-container img {
-  width: 175px;
-  height: 75px;
-  object-fit: cover;
-  margin: 3vh;
-}
-
-.icons {
-  display: inline-flex;
-  flex-direction: column;
-}
-
-.icons a {
-  text-decoration: none;
-  color: var(--app-text-primary-color);
-
-  &:hover {
-    opacity: 0.8;
-  }
-}
-
-.logout i {
-  margin: 1vh;
-  font-size: 24px;
-}
-
-.account i {
-  padding-left: 1vh;
-  cursor: pointer;
-}
-
-.icons a i {
-  margin: 1vh;
-  font-size: 24px;
-}
-
-.icons p {
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.logout {
-  position: fixed;
-  bottom: 10vh;
-  color: var(--app-text-primary-color);
-  cursor: pointer;
-}
-
 .middle {
   background-color: var(--app-background-color);
   width: 100%;
   color: var(--app-text-primary-color);
-  height: 100vh;
+  overflow: hidden;
+  position: relative;
 }
 
-.middle-container h2 {
+.middle-container {
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: calc(100% + 20px);
+  height: 100%;
+  padding-bottom: 10vh;
+  position: relative;
+}
+
+.middle-container h1 {
   padding: 5vh 0 0 5vh;
 }
 
@@ -285,6 +132,7 @@ export default {
   display: inline-flex;
   flex-wrap: wrap;
   width: 100%;
+  padding: 0 5vh;
 }
 
 .comment-content {
@@ -300,7 +148,7 @@ export default {
 .comment {
   display: inline-flex;
   flex-direction: column;
-  margin: 2.5vh 2.5vh 2.5vh 5vh;
+  margin: 2.5vh 0;
   padding: 2vh;
   border: 1px solid var(--app-text-primary-color);
   border-radius: 20px;
@@ -358,62 +206,16 @@ export default {
   transition: all 450ms ease-in-out;
 }
 
+.update i {
+  color: var(--app-text-primary-color);
+}
+
 .update :hover {
   color: var(--app-text-primary-color);
   transform: scale(1.11);
 }
 
-.account {
-  display: inline-flex;
-  align-items: center;
-  color: var(--app-text-primary-color);
-  padding: 2vh;
-  position: fixed;
-  bottom: 1vh;
-  margin: 0 2vh;
-}
-
-.account img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 30px;
-  border: 1px solid #2d3036;
-  margin: 0;
-}
-
 @media (max-width: 700px) {
-  .content {
-    display: initial;
-  }
-
-  .side {
-    height: initial;
-  }
-
-  .side-container {
-    height: 20vh;
-    width: 100%;
-    position: initial;
-    align-items: initial;
-  }
-
-  .icons {
-    flex-direction: row;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    position: fixed;
-    background: var(--app-sidebar-color);
-    padding: 2vh 2vh 0;
-    z-index: 9999;
-    justify-content: space-between;
-  }
-
-  .icons span {
-    display: none;
-  }
-
   .data {
     justify-content: center;
   }
@@ -422,27 +224,6 @@ export default {
     text-align: center;
     padding: 0;
     padding-top: 4vh;
-  }
-
-  .logout {
-    top: 12vh;
-    left: 0;
-    right: 0;
-    bottom: initial;
-    text-align: center;
-    position: absolute;
-  }
-
-  .account {
-    bottom: initial;
-    top: 3vh;
-    right: 2vh;
-    position: absolute;
-  }
-
-  .account i {
-    padding-left: 1vh;
-    cursor: pointer;
   }
 
   .list-comments {
@@ -475,17 +256,6 @@ export default {
     bottom: 0;
     left: 0;
     right: 0;
-  }
-}
-@media (max-width: 400px) {
-  .side-container a img {
-    max-width: 175px;
-    width: 50%;
-  }
-
-  .account {
-    margin: 0;
-    right: 1vh;
   }
 }
 </style>

@@ -1,31 +1,26 @@
 <template>
-  <div class="component-modify" @click="modifyUser">
+  <div class="component-modify" @click="emitEvent">
     <i class="fa fa-pencil"></i>
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import EventBus from '../EventBus';
 
-export default {
-  props: {
-    data: {
-      type: Object,
-      required: true,
-    },
-  },
-  methods: {
-    modifyUser() {
-      EventBus.$emit('modifyActionPressed', this.data);
-    },
-  },
-};
+const props = defineProps<{
+  data: any;
+}>();
+
+function emitEvent() {
+  EventBus.emit('modifyActionPressed', props.data);
+}
 </script>
 
 <style>
 .component-modify {
   width: fit-content;
   transition: all 450ms ease-in-out;
+  cursor: pointer;
 }
 
 .component-modify :hover {

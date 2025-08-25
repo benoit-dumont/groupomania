@@ -1,294 +1,248 @@
 <template>
   <div class="test">
     <div class="content-signup">
-      <img :src="this.getImage()" alt="Logo Groupomania" />
-      <h2>{{ $t('SIGNUP.TITLE') }}</h2>
+      <img :src="logoSrc" alt="Logo Groupomania" />
+      <h2>{{ t('SIGNUP.TITLE') }}</h2>
       <form>
         <div class="champ">
-          <label>{{ $t('SIGNUP.NAMELABEL') }} *</label>
+          <label>{{ t('SIGNUP.NAMELABEL') }} *</label>
           <br />
           <input
+            v-model="name"
             type="text"
             name="nom"
-            :placeholder="$t('SIGNUP.NAMEPLACEHOLDER')"
-            v-model="name"
-            :pattern="patternName"
+            :placeholder="t('SIGNUP.NAMEPLACEHOLDER')"
+            :pattern="patternNameString"
           />
         </div>
         <div class="champ">
-          <label>{{ $t('SIGNUP.FIRSTNAMELABEL') }} *</label>
+          <label>{{ t('SIGNUP.FIRSTNAMELABEL') }} *</label>
           <br />
           <input
+            v-model="firstname"
             type="text"
             name="prenom"
-            :placeholder="$t('SIGNUP.FIRSTNAMEPLACEHOLDER')"
-            v-model="firstname"
-            :pattern="patternFirstname"
+            :placeholder="t('SIGNUP.FIRSTNAMEPLACEHOLDER')"
+            :pattern="patternFirstnameString"
           />
         </div>
         <div class="champ">
-          <label>{{ $t('SIGNUP.USERNAMELABEL') }} *</label>
+          <label>{{ t('SIGNUP.USERNAMELABEL') }} *</label>
           <br />
           <input
+            v-model="username"
             type="text"
             name="username"
-            :placeholder="$t('SIGNUP.USERNAMEPLACEHOLDER')"
-            v-model="username"
-            :pattern="patternUsername"
+            :placeholder="t('SIGNUP.USERNAMEPLACEHOLDER')"
+            :pattern="patternUsernameString"
           />
         </div>
         <div class="champ">
-          <label>{{ $t('SIGNUP.EMAILLABEL') }} *</label>
+          <label>{{ t('SIGNUP.EMAILLABEL') }} *</label>
           <br />
           <input
+            v-model="email"
             type="email"
             name="email"
-            :placeholder="$t('SIGNUP.EMAILPLACEHOLDER')"
-            v-model="email"
-            :pattern="patternEmail"
+            :placeholder="t('SIGNUP.EMAILPLACEHOLDER', { email: 'example@groupomania.fr' })"
+            :pattern="patternEmailString"
           />
         </div>
         <div class="champ">
-          <label>{{ $t('SIGNUP.PASSWORDLABEL') }} *</label>
+          <label>{{ t('SIGNUP.PASSWORDLABEL') }} *</label>
           <br />
           <input
+            v-model="password"
             type="text"
             name="password"
-            :placeholder="$t('SIGNUP.PASSWORDPLACEHOLDER')"
-            v-model="password"
-            :pattern="patternPassword"
+            :placeholder="t('SIGNUP.PASSWORDPLACEHOLDER')"
+            :pattern="patternPasswordString"
           />
         </div>
         <div class="champ">
-          <label>{{ $t('SIGNUP.AVATARLABEL') }}</label>
+          <label>{{ t('SIGNUP.AVATARLABEL') }}</label>
           <br />
           <label for="post-image" class="design"
-            ><i class="fas fa-upload"></i>
-            {{ $t('SIGNUP.AVATARSUBMIT') }}</label
+            ><i class="fas fa-upload"></i> {{ t('SIGNUP.AVATARSUBMIT') }}</label
           >
-          <input
-            type="file"
-            id="post-image"
-            class="upload"
-            @change="tempStoreImage"
-          />
+          <input id="post-image" type="file" class="upload" @change="tempStoreImage" />
         </div>
-        <p class="filename" v-if="this.avatar">
-          {{ $t('SIGNUP.SELECTEDIMAGE') }} <i class="fas fa-check-circle"></i>
+        <p v-if="avatar" class="filename">
+          {{ t('SIGNUP.SELECTEDIMAGE') }} <i class="fas fa-check-circle"></i>
         </p>
         <div class="champ">
-          <label>{{ $t('SIGNUP.QUESTIONLABEL') }} *</label>
+          <label>{{ t('SIGNUP.QUESTIONLABEL') }} *</label>
           <br />
           <input
+            v-model="question"
             type="text"
             name="question"
-            :placeholder="$t('SIGNUP.QUESTIONPLACEHOLDER')"
-            v-model="question"
-            :pattern="patternQuestion"
+            :placeholder="t('SIGNUP.QUESTIONPLACEHOLDER')"
+            :pattern="patternQuestionString"
           />
         </div>
         <div class="champ">
-          <label>{{ $t('SIGNUP.RESPONSELABEL') }} *</label>
+          <label>{{ t('SIGNUP.RESPONSELABEL') }} *</label>
           <br />
           <input
+            v-model="reponse"
             type="text"
             name="reponse"
-            :placeholder="$t('SIGNUP.RESPONSEPLACEHOLDER')"
-            v-model="reponse"
-            :pattern="patternReponse"
+            :placeholder="t('SIGNUP.RESPONSEPLACEHOLDER')"
+            :pattern="patternReponseString"
           />
         </div>
         <br />
         <input
           type="submit"
           name="submit"
-          :value="$t('SIGNUP.SUBMITBUTTON')"
+          :value="t('SIGNUP.SUBMITBUTTON')"
           class="btn"
           @click.prevent="submit"
         />
       </form>
       <h3>
-        {{ $t('SIGNUP.ALREADYREGISTER') }}
-        <router-link :to="{ name: 'Login' }">{{
-          $t('SIGNUP.SWITCHREGISTERLOGIN')
-        }}</router-link>
+        {{ t('SIGNUP.ALREADYREGISTER') }}
+        <router-link :to="{ name: 'Login' }">{{ t('SIGNUP.SWITCHREGISTERLOGIN') }}</router-link>
       </h3>
-      <h4>* = {{ $t('SIGNUP.REQUIRED') }}</h4>
+      <h4>* = {{ t('SIGNUP.REQUIRED') }}</h4>
     </div>
   </div>
 </template>
 
-<script>
-import LogoBlack from '../assets/logo_full_black.png';
-import LogoWhite from '../assets/logo_full_white.png';
+<script setup lang="ts">
+import { Ref, ref } from 'vue';
+import { useHead } from '@vueuse/head';
+import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-export default {
-  name: 'Register',
-  metaInfo() {
-    const title = this.$t('SIGNUP.TITLE');
-    return {
-      title,
-    };
-  },
-  data() {
-    return {
-      /* eslint-disable no-useless-escape */
-      patternName:
-        '^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$',
-      patternFirstname:
-        '^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$',
-      patternUsername:
-        '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}$',
-      patternEmail: '^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i',
-      patternPassword:
-        '^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$',
-      patternQuestion:
-        '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"\'/ _-]{4,15}$',
-      patternReponse:
-        '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.`\'"/ _-]{4,15}$',
-      /* eslint-enable no-useless-escape */
-      name: '',
-      firstname: '',
-      username: '',
-      email: '',
-      avatar: '',
-      password: '',
-      question: '',
-      reponse: '',
-      user: {},
-    };
-  },
-  methods: {
-    submit() {
-      const regexName =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$/;
-      const regexFirstname =
-        /^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$/;
-      const regexUsername =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}$/;
-      const regexEmail = /^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i;
-      const regexPassword =
-        /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$/;
-      const regexQuestion =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"'/ _-]{4,15}$/;
-      const regexReponse =
-        /^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.'"/ _-]{4,15}$/;
-      const {
-        name,
-        firstname,
-        username,
-        email,
-        password,
-        question,
-        reponse,
-        avatar,
-      } = this;
-      if (this.name.length === 0) {
-        return this.$vToastify.error(this.$t('NAME.INPUT'));
-      }
-      if (this.firstname.length === 0) {
-        return this.$vToastify.error(this.$t('FIRSTNAME.INPUT'));
-      }
-      if (this.username.length === 0) {
-        return this.$vToastify.error(this.$t('USERNAME.INPUT'));
-      }
-      if (this.email.length === 0) {
-        return this.$vToastify.error(this.$t('EMAIL.INPUT'));
-      }
-      if (this.password.length === 0) {
-        return this.$vToastify.error(this.$t('PASSWORD.INPUT'));
-      }
-      if (this.question.length === 0) {
-        return this.$vToastify.error(this.$t('QUESTION.INPUT'));
-      }
-      if (this.reponse.length === 0) {
-        return this.$vToastify.error(this.$t('REPONSE.INPUT'));
-      }
-      if (!regexName.test(name)) {
-        return this.$vToastify.error(this.$t('NAME.FORMAT'));
-      }
-      if (!regexFirstname.test(firstname)) {
-        return this.$vToastify.error(this.$t('FIRSTNAME.FORMAT'));
-      }
-      if (!regexUsername.test(username)) {
-        return this.$vToastify.error(this.$t('USERNAME.FORMAT'));
-      }
-      if (!regexEmail.test(email)) {
-        return this.$vToastify.error(this.$t('EMAIL.FORMAT'));
-      }
-      if (!regexPassword.test(password)) {
-        return this.$vToastify.error(this.$t('PASSWORD.FORMAT'));
-      }
-      if (!regexQuestion.test(question)) {
-        return this.$vToastify.error(this.$t('QUESTION.FORMAT'));
-      }
-      if (!regexReponse.test(reponse)) {
-        return this.$vToastify.error(this.$t('REPONSE.FORMAT'));
-      }
-      if (avatar) {
-        const data = new FormData();
-        data.append('name', name);
-        data.append('firstname', firstname);
-        data.append('username', username);
-        data.append('email', email);
-        data.append('password', password);
-        data.append('question', question);
-        data.append('reponse', reponse);
-        data.append('avatar', avatar);
-        return fetch('http://localhost:3000/api/user/signup', {
-          method: 'POST',
-          body: data,
-        })
-          .then((response) => response.json())
-          .then(() => {
-            setTimeout(() => this.$router.push({ name: 'Login' }), 4000);
-            return this.$vToastify.success(
-              this.$t('SIGNUP.USER.SUCCESS.WITHAVATAR'),
-            );
-          })
-          .catch(() => {
-            return this.$vToastify.success(this.$t('ERROR.GENERAL'));
-          });
-      }
-      return fetch('http://localhost:3000/api/user/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          firstname,
-          username,
-          email,
-          password,
-          question,
-          reponse,
-        }),
+import { useTheme } from '@/composables/useTheme';
+import { useToast } from '@/composables';
+import { User } from '@/types';
+
+const { t } = useI18n();
+const { logoSrc } = useTheme();
+const router = useRouter();
+const toast = useToast();
+
+useHead({
+  title: t('SIGNUP.TITLE'),
+  meta: [
+    {
+      name: 'description',
+      content: "Page d'inscription du site Groupomania",
+    },
+  ],
+});
+
+const patternNameString = ref(
+  '^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$',
+);
+const patternFirstnameString = ref(
+  '^[A-ZÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸÇßØÅÆ]{1}[a-zàèìòùáéíóúýâêîôûãñõäëïöüÿçøåæœ]{2,15}$',
+);
+const patternUsernameString = ref(
+  '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ_-]{4,20}$',
+);
+const patternEmailString = ref('^([\w-]+(?:\.[\w-]+)*)@groupomania\.fr$/i');
+const patternPasswordString = ref('^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[^\w\d\s:])([^\s]){8,16}$');
+const patternQuestionString = ref(
+  '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.?"\'/ _-]{4,15}$',
+);
+const patternReponseString = ref(
+  '^[a-zA-Z0-9àèìòùÀÈÌÒÙáéíóúýÁÉÍÓÚÝâêîôûÂÊÎÔÛãñõÃÑÕäëïöüÿÄËÏÖÜŸçÇßØøÅåÆæœ,.`\'"/ _-]{4,15}$',
+);
+
+const name: Ref<User['name']> = ref('');
+const firstname: Ref<User['firstname']> = ref('');
+const username: Ref<User['username']> = ref('');
+const email: Ref<User['email']> = ref('');
+const avatar = ref<File | null>(null);
+const password: Ref<User['password']> = ref('');
+const question: Ref<User['question']> = ref('');
+const reponse: Ref<User['reponse']> = ref('');
+
+function submit() {
+  const patternName = RegExp(patternNameString.value);
+  const patternFirstname = RegExp(patternFirstnameString.value);
+  const patternUsername = RegExp(patternUsernameString.value);
+  const patternEmail = RegExp(patternEmailString.value);
+  const patternPassword = RegExp(patternPasswordString.value);
+  const patternQuestion = RegExp(patternQuestionString.value);
+  const patternReponse = RegExp(patternReponseString.value);
+
+  if (name.value.length === 0) return toast.error(t('NAME.INPUT'));
+  if (firstname.value.length === 0) return toast.error(t('FIRSTNAME.INPUT'));
+  if (username.value.length === 0) return toast.error(t('USERNAME.INPUT'));
+  if (email.value.length === 0) return toast.error(t('EMAIL.INPUT'));
+  if (password.value.length === 0) return toast.error(t('PASSWORD.INPUT'));
+  if (question.value.length === 0) return toast.error(t('QUESTION.INPUT'));
+  if (reponse.value.length === 0) return toast.error(t('REPONSE.INPUT'));
+
+  if (!patternName.test(name.value)) return toast.error(t('NAME.FORMAT'));
+  if (!patternFirstname.test(firstname.value)) return toast.error(t('FIRSTNAME.FORMAT'));
+  if (!patternUsername.test(username.value)) return toast.error(t('USERNAME.FORMAT'));
+  if (!patternEmail.test(email.value)) return toast.error(t('EMAIL.FORMAT'));
+  if (!patternPassword.test(password.value)) return toast.error(t('PASSWORD.FORMAT'));
+  if (!patternQuestion.test(question.value)) return toast.error(t('QUESTION.FORMAT'));
+  if (!patternReponse.test(reponse.value)) return toast.error(t('REPONSE.FORMAT'));
+
+  if (avatar.value) {
+    const data = new FormData();
+    data.append('name', name.value);
+    data.append('firstname', firstname.value);
+    data.append('username', username.value);
+    data.append('email', email.value);
+    data.append('password', password.value);
+    data.append('question', question.value);
+    data.append('reponse', reponse.value);
+    if (avatar.value instanceof File) {
+      data.append('avatar', avatar.value);
+    }
+    return fetch('http://localhost:3000/api/user/signup', {
+      method: 'POST',
+      body: data,
+    })
+      .then((response) => response.json())
+      .then(() => {
+        setTimeout(() => router.push({ name: 'Login' }), 4000);
+        return toast.success(t('SIGNUP.USER.SUCCESS.WITHAVATAR'));
       })
-        .then((response) => response.json())
-        .then(() => {
-          setTimeout(() => this.$router.push({ name: 'Login' }), 4000);
-          return this.$vToastify.success(
-            this.$t('SIGNUP.USER.SUCCESS.WITHOUTAVATAR'),
-          );
-        })
-        .catch(() => {
-          return this.$vToastify.success(this.$t('ERROR.GENERAL'));
-        });
+      .catch(() => {
+        return toast.success(t('ERROR.GENERAL'));
+      });
+  }
+  return fetch('http://localhost:3000/api/user/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-    tempStoreImage(e) {
-      const file = e.target.files[0];
-      this.avatar = file;
-    },
-    getImage() {
-      const theme = localStorage.getItem('theme');
-      if (theme === 'light') {
-        return LogoBlack;
-      }
-      return LogoWhite;
-    },
-  },
-};
+    body: JSON.stringify({
+      name,
+      firstname,
+      username,
+      email,
+      password,
+      question,
+      reponse,
+    }),
+  })
+    .then((response) => response.json())
+    .then(() => {
+      setTimeout(() => router.push({ name: 'Login' }), 4000);
+      return toast.success(t('SIGNUP.USER.SUCCESS.WITHOUTAVATAR'));
+    })
+    .catch(() => {
+      return toast.success(t('ERROR.GENERAL'));
+    });
+}
+
+function tempStoreImage(e: Event) {
+  const input = e.target as HTMLInputElement;
+  if (input.files && input.files.length > 0) {
+    avatar.value = input.files[0];
+  }
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -312,7 +266,6 @@ export default {
 .content-signup img {
   max-width: 350px;
   width: 100%;
-  height: 150px;
   object-fit: cover;
   padding: 2vh;
 }
@@ -416,7 +369,6 @@ button {
 
 .champ i {
   font-size: 24px;
-  padding: 1vh;
 }
 
 .upload {
